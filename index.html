@@ -5,43 +5,177 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>📦 Inventory Management System</title>
   <meta name="description" content="A full-stack Inventory Management System featuring camera barcode & SKU scanning, user authentication, real-time stock adjustments, activity audit logs, CSV export, printable reports, and low stock alerts." />
-  <!-- Google Fonts: Inter -->
+  <!-- Google Fonts: Inter, Chakra Petch & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,500;0,600;0,700;1,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
   <!-- HTML5 QR & Barcode Camera Scanner Library -->
   <script src="/html5-qrcode.min.js"></script>
 
   <style>
-    :root {
-      --bg-dark: #0b1329;
-      --bg-header: #111e38;
+    /* Base Color Tokens & Theme Definitions */
+    :root, [data-theme="warehouse"] {
+      /* Theme 1: Industrial Warehouse / Logistics Depot (High-visibility Safety Amber & Heavy Industrial Steel) */
+      --theme-name: "warehouse";
+      --bg-dark: #12151c;
+      --bg-header: #1a1e27;
+      --bg-depot-stripe: repeating-linear-gradient(45deg, rgba(245, 158, 11, 0.04), rgba(245, 158, 11, 0.04) 10px, transparent 10px, transparent 20px);
+      --card-bg: #1e2430;
+      --card-muted: #171b24;
+      --accent-blue: #f59e0b; /* Safety Warning Amber */
+      --accent-blue-hover: #d97706;
+      --accent-indigo: #eab308;
+      --accent-glow: rgba(245, 158, 11, 0.25);
+      --text-dark: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-light: #ffffff;
+      --border-color: #2e384d;
+      --border-dark: #171c26;
+      --danger-red: #ef4444;
+      --danger-light: rgba(239, 68, 68, 0.12);
+      --danger-border: #7f1d1d;
+      --danger-badge-bg: #450a0a;
+      --danger-badge-text: #fca5a5;
+      --success-green: #10b981;
+      --success-light: rgba(16, 185, 129, 0.12);
+      --warning-amber: #f59e0b;
+      --warning-light: rgba(245, 158, 11, 0.15);
+      --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.35);
+      --shadow-md: 0 4px 10px -1px rgba(0, 0, 0, 0.45);
+      --shadow-lg: 0 10px 20px -3px rgba(0, 0, 0, 0.55);
+      --shadow-xl: 0 20px 30px -5px rgba(0, 0, 0, 0.7);
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --font-display: 'Chakra Petch', 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --table-header-bg: #161b24;
+      --table-row-bg: #1e2430;
+      --table-row-hover: #262e3d;
+      --input-bg: #161a23;
+    }
+
+    [data-theme="military"] {
+      /* Theme 2: Army Quartermaster / Military Tactical Supply (Olive Drab, Desert Sand & Camo Steel) */
+      --theme-name: "military";
+      --bg-dark: #151914;
+      --bg-header: #1c221b;
+      --bg-depot-stripe: repeating-linear-gradient(45deg, rgba(132, 169, 140, 0.03), rgba(132, 169, 140, 0.03) 10px, transparent 10px, transparent 20px);
+      --card-bg: #222920;
+      --card-muted: #191f17;
+      --accent-blue: #84a98c; /* Tactical Olive Green */
+      --accent-blue-hover: #6b8e73;
+      --accent-indigo: #adc178;
+      --accent-glow: rgba(132, 169, 140, 0.3);
+      --text-dark: #e9edc9;
+      --text-muted: #a3b18a;
+      --text-light: #fefae0;
+      --border-color: #384635;
+      --border-dark: #283226;
+      --danger-red: #e07a5f;
+      --danger-light: rgba(224, 122, 95, 0.15);
+      --danger-border: #7f2d1d;
+      --danger-badge-bg: #4a1e16;
+      --danger-badge-text: #fbb19e;
+      --success-green: #52b788;
+      --success-light: rgba(82, 183, 136, 0.15);
+      --warning-amber: #dda15e;
+      --warning-light: rgba(221, 161, 94, 0.15);
+      --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+      --shadow-md: 0 4px 10px -1px rgba(0, 0, 0, 0.5);
+      --shadow-lg: 0 10px 20px -3px rgba(0, 0, 0, 0.6);
+      --shadow-xl: 0 20px 30px -5px rgba(0, 0, 0, 0.75);
+      --radius-sm: 3px;
+      --radius-md: 6px;
+      --radius-lg: 10px;
+      --font-display: 'Chakra Petch', 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --table-header-bg: #1a2019;
+      --table-row-bg: #222920;
+      --table-row-hover: #2c352a;
+      --input-bg: #181e17;
+    }
+
+    [data-theme="cyber-depot"] {
+      /* Theme 3: High-Tech Automated Cargo Port (Dark Obsidian, Safety Cyan & Hazard Stripes) */
+      --theme-name: "cyber-depot";
+      --bg-dark: #0a0d14;
+      --bg-header: #0f1420;
+      --bg-depot-stripe: repeating-linear-gradient(45deg, rgba(6, 182, 212, 0.04), rgba(6, 182, 212, 0.04) 12px, transparent 12px, transparent 24px);
+      --card-bg: #141b2b;
+      --card-muted: #0d121e;
+      --accent-blue: #06b6d4; /* Industrial Neon Cyan */
+      --accent-blue-hover: #0891b2;
+      --accent-indigo: #3b82f6;
+      --accent-glow: rgba(6, 182, 212, 0.3);
+      --text-dark: #f0f9ff;
+      --text-muted: #7dd3fc;
+      --text-light: #ffffff;
+      --border-color: #1e293b;
+      --border-dark: #0f172a;
+      --danger-red: #f43f5e;
+      --danger-light: rgba(244, 63, 94, 0.15);
+      --danger-border: #881337;
+      --danger-badge-bg: #4c0519;
+      --danger-badge-text: #fda4af;
+      --success-green: #10b981;
+      --success-light: rgba(16, 185, 129, 0.15);
+      --warning-amber: #f59e0b;
+      --warning-light: rgba(245, 158, 11, 0.15);
+      --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+      --shadow-md: 0 4px 10px -1px rgba(0, 0, 0, 0.5);
+      --shadow-lg: 0 10px 20px -3px rgba(0, 0, 0, 0.6);
+      --shadow-xl: 0 20px 30px -5px rgba(0, 0, 0, 0.75);
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --font-display: 'Chakra Petch', 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --table-header-bg: #0e1320;
+      --table-row-bg: #141b2b;
+      --table-row-hover: #1c253b;
+      --input-bg: #0d121e;
+    }
+
+    [data-theme="light-depot"] {
+      /* Theme 4: High-Contrast Warehouse Dispatch (Rugged Paper & Safety Orange) */
+      --theme-name: "light-depot";
+      --bg-dark: #f1f5f9;
+      --bg-header: #ffffff;
+      --bg-depot-stripe: repeating-linear-gradient(45deg, rgba(234, 88, 12, 0.04), rgba(234, 88, 12, 0.04) 10px, transparent 10px, transparent 20px);
       --card-bg: #ffffff;
       --card-muted: #f8fafc;
-      --accent-blue: #2563eb;
-      --accent-blue-hover: #1d4ed8;
-      --accent-indigo: #4f46e5;
+      --accent-blue: #ea580c; /* Safety Orange */
+      --accent-blue-hover: #c2410c;
+      --accent-indigo: #d97706;
+      --accent-glow: rgba(234, 88, 12, 0.25);
       --text-dark: #0f172a;
       --text-muted: #64748b;
-      --text-light: #f8fafc;
-      --border-color: #e2e8f0;
-      --border-dark: #1e293b;
-      --danger-red: #ef4444;
+      --text-light: #ffffff;
+      --border-color: #cbd5e1;
+      --border-dark: #94a3b8;
+      --danger-red: #dc2626;
       --danger-light: #fef2f2;
       --danger-border: #fecaca;
       --danger-badge-bg: #fee2e2;
-      --danger-badge-text: #b91c1c;
-      --success-green: #10b981;
-      --success-light: #ecfdf5;
-      --warning-amber: #f59e0b;
+      --danger-badge-text: #991b1b;
+      --success-green: #16a34a;
+      --success-light: #f0fdf4;
+      --warning-amber: #d97706;
       --warning-light: #fffbeb;
-      --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.08);
-      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-      --radius-sm: 6px;
-      --radius-md: 10px;
-      --radius-lg: 14px;
+      --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.12);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.15);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+      --radius-sm: 5px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --font-display: 'Chakra Petch', 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --table-header-bg: #e2e8f0;
+      --table-row-bg: #ffffff;
+      --table-row-hover: #f1f5f9;
+      --input-bg: #ffffff;
     }
 
     * {
@@ -53,10 +187,31 @@
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background-color: var(--bg-dark);
+      background-image: var(--bg-depot-stripe);
       color: var(--text-dark);
       min-height: 100vh;
       padding-bottom: 80px;
       -webkit-font-smoothing: antialiased;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Industrial Accent / Hazard Bar Indicator */
+    .depot-hazard-bar {
+      height: 4px;
+      background: repeating-linear-gradient(-45deg, #f59e0b, #f59e0b 14px, #18181b 14px, #18181b 28px);
+      width: 100%;
+    }
+
+    [data-theme="military"] .depot-hazard-bar {
+      background: repeating-linear-gradient(-45deg, #84a98c, #84a98c 14px, #151914 14px, #151914 28px);
+    }
+
+    [data-theme="cyber-depot"] .depot-hazard-bar {
+      background: repeating-linear-gradient(-45deg, #06b6d4, #06b6d4 14px, #0a0d14 14px, #0a0d14 28px);
+    }
+
+    [data-theme="light-depot"] .depot-hazard-bar {
+      background: repeating-linear-gradient(-45deg, #ea580c, #ea580c 14px, #334155 14px, #334155 28px);
     }
 
     /* 1. Header & Navigation */
@@ -1810,20 +1965,244 @@
       gap: 6px;
     }
 
+    /* Industrial Warehouse & Military Theme Styling Refinements */
+    .brand {
+      font-family: var(--font-display);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .stat-title {
+      font-family: var(--font-display);
+      letter-spacing: 0.08em;
+    }
+
+    .stat-value {
+      font-family: var(--font-display);
+      font-weight: 700;
+    }
+
+    .table-container {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-md);
+    }
+
+    thead th {
+      background-color: var(--table-header-bg);
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-color);
+      font-family: var(--font-display);
+      letter-spacing: 0.08em;
+    }
+
+    tbody tr {
+      background-color: var(--table-row-bg);
+    }
+
+    tbody tr:hover {
+      background-color: var(--table-row-hover);
+    }
+
+    tbody td {
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .input-field, .select-field {
+      background-color: var(--input-bg);
+      color: var(--text-dark);
+      border-color: var(--border-color);
+    }
+
+    .input-field:focus, .select-field:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .modal {
+      border: 1px solid var(--border-color);
+    }
+
+    .modal-header {
+      background-color: var(--card-muted);
+      border-bottom: 1px solid var(--border-color);
+      font-family: var(--font-display);
+    }
+
+    .modal-footer {
+      background-color: var(--card-muted);
+      border-top: 1px solid var(--border-color);
+    }
+
+    label {
+      color: var(--text-muted);
+      font-family: var(--font-display);
+      letter-spacing: 0.03em;
+    }
+
+    .sku-chip {
+      background-color: var(--input-bg);
+      color: var(--text-dark);
+      border-color: var(--border-color);
+    }
+
+    .category-chip {
+      background-color: rgba(245, 158, 11, 0.12);
+      color: var(--accent-blue);
+      border-color: var(--border-color);
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    [data-theme="military"] .category-chip {
+      background-color: rgba(132, 169, 140, 0.15);
+      color: #a3b18a;
+    }
+
+    [data-theme="cyber-depot"] .category-chip {
+      background-color: rgba(6, 182, 212, 0.15);
+      color: #38bdf8;
+    }
+
+    .price-tag {
+      color: var(--text-dark);
+      font-family: var(--font-mono);
+    }
+
+    .total-val-tag {
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .btn-qty-mini {
+      background-color: var(--input-bg);
+      color: var(--text-dark);
+      border-color: var(--border-color);
+    }
+
+    .btn-qty-mini:hover {
+      background-color: var(--table-row-hover);
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+
+    .sample-barcodes-section {
+      background-color: var(--card-muted);
+      border-color: var(--border-color);
+    }
+
+    .sample-barcode-chip {
+      background: var(--input-bg);
+      border-color: var(--border-color);
+      color: var(--text-dark);
+    }
+
+    .scanned-result-card {
+      background: var(--card-muted);
+      border-color: var(--border-color);
+    }
+
+    .scanned-title {
+      color: var(--text-dark);
+      font-family: var(--font-display);
+    }
+
+    .btn-step-adjust {
+      background: var(--input-bg);
+      border-color: var(--border-color);
+      color: var(--text-dark);
+    }
+
+    .demo-users-box {
+      background-color: var(--card-muted);
+      border-color: var(--border-color);
+    }
+
+    .log-item {
+      background-color: var(--card-bg);
+      border-color: var(--border-color);
+    }
+
+    .theme-picker-select {
+      background-color: #1e293b;
+      color: #f1f5f9;
+      border: 1px solid #334155;
+      padding: 7px 11px;
+      border-radius: var(--radius-sm);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.15s ease;
+      font-family: var(--font-display);
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .theme-picker-select:hover, .theme-picker-select:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 2px var(--accent-glow);
+    }
+
+    [data-theme="military"] .theme-picker-select {
+      background-color: #222920;
+      border-color: #384635;
+      color: #e9edc9;
+    }
+
+    [data-theme="cyber-depot"] .theme-picker-select {
+      background-color: #141b2b;
+      border-color: #1e293b;
+      color: #f0f9ff;
+    }
+
+    [data-theme="light-depot"] .theme-picker-select {
+      background-color: #ffffff;
+      border-color: #cbd5e1;
+      color: #0f172a;
+    }
+
+    .warehouse-badge-callout {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: var(--font-display);
+      letter-spacing: 0.05em;
+      border: 1px solid var(--border-color);
+      background-color: var(--card-muted);
+      color: var(--accent-blue);
+    }
   </style>
 </head>
 <body>
+  <!-- Top Industrial Hazard Strip -->
+  <div class="depot-hazard-bar"></div>
 
   <!-- 1. Navbar -->
   <header class="navbar" id="navbar">
     <div class="brand-section">
-      <a href="#" class="brand">
-        <span>📦 Inventory Manager</span>
+      <a href="#" class="brand" id="brandLogo">
+        <span id="brandIcon">🏭</span> <span id="brandText">DEPOT LOGISTICS & ARMORY</span>
       </a>
-      <span class="version-pill">v2.2 Pro</span>
+      <span class="version-pill" id="themeStatusPill">DEPOT v2.2</span>
     </div>
 
     <div class="header-actions">
+      <!-- Theme Switcher Selector -->
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <label for="themeSelector" style="font-size: 11px; margin-bottom: 0; display: none;" class="sr-only">Theme</label>
+        <select id="themeSelector" class="theme-picker-select" onchange="changeTheme(this.value)" title="Choose Warehouse / Military Theme">
+          <option value="warehouse">🏭 Industrial Warehouse</option>
+          <option value="military">🪖 Army Quartermaster</option>
+          <option value="cyber-depot">⚡ Cyber Cargo Port</option>
+          <option value="light-depot">📋 Dispatch Manifest</option>
+        </select>
+      </div>
+
       <!-- Quick Action Buttons -->
       <button class="header-btn" id="navScanBtn" onclick="openScannerModal()" title="Scan product barcode or SKU with camera">
         <span>📷</span> Scan Barcode
@@ -2523,9 +2902,59 @@
     let currentSortOrder = 'desc';
     let cachedActivityLogs = [];
     const newlyAddedProductIds = new Set();
+    let currentTheme = localStorage.getItem('inv_theme') || 'warehouse';
+
+    // --- THEME MANAGEMENT MODULE ---
+    function initTheme() {
+      applyTheme(currentTheme, false);
+    }
+
+    function changeTheme(themeName) {
+      currentTheme = themeName;
+      localStorage.setItem('inv_theme', themeName);
+      applyTheme(themeName, true);
+    }
+
+    function applyTheme(themeName, showToastNotify) {
+      document.documentElement.setAttribute('data-theme', themeName);
+      
+      const selector = document.getElementById('themeSelector');
+      if (selector && selector.value !== themeName) {
+        selector.value = themeName;
+      }
+
+      const brandIcon = document.getElementById('brandIcon');
+      const brandText = document.getElementById('brandText');
+      const pill = document.getElementById('themeStatusPill');
+
+      if (themeName === 'military') {
+        if (brandIcon) brandIcon.textContent = '🪖';
+        if (brandText) brandText.textContent = 'QUARTERMASTER ARMORY & SUPPLY';
+        if (pill) pill.textContent = 'MIL-SPEC v2.2';
+        if (showToastNotify) showToast('🪖 Switched to Army Quartermaster theme', 'info');
+      } else if (themeName === 'cyber-depot') {
+        if (brandIcon) brandIcon.textContent = '⚡';
+        if (brandText) brandText.textContent = 'AUTOMATED CARGO TERMINAL';
+        if (pill) pill.textContent = 'CYBER-PORT v2.2';
+        if (showToastNotify) showToast('⚡ Switched to Cyber Cargo Port theme', 'info');
+      } else if (themeName === 'light-depot') {
+        if (brandIcon) brandIcon.textContent = '📋';
+        if (brandText) brandText.textContent = 'WAREHOUSE DISPATCH LOGISTICS';
+        if (pill) pill.textContent = 'DISPATCH v2.2';
+        if (showToastNotify) showToast('📋 Switched to Dispatch Manifest theme', 'info');
+      } else {
+        // Warehouse (Default)
+        if (brandIcon) brandIcon.textContent = '🏭';
+        if (brandText) brandText.textContent = 'DEPOT LOGISTICS & WAREHOUSE';
+        if (pill) pill.textContent = 'DEPOT v2.2';
+        if (showToastNotify) showToast('🏭 Switched to Industrial Warehouse theme', 'info');
+      }
+    }
 
     // Initialize application on DOM ready
     document.addEventListener('DOMContentLoaded', async () => {
+      // Initialize Theme first
+      initTheme();
       // Check stored token / authentication
       await checkAuthStatus();
       // Fetch products and logs

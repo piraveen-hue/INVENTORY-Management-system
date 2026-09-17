@@ -204,16 +204,22 @@ The system manages three primary entities: **User**, **Product**, and **Activity
 
 ### Key Interface Modules
 1. **Header & Navigation**:
-   - Application branding, status indicator, Quick Scan launcher, Activity Log drawer button, CSV export, Print action, and User profile pill with instant role switching.
-2. **Dashboard KPI Banner**:
-   - 5 high-contrast metric tiles calculating dynamic inventory metrics in real-time.
-3. **Controls Bar**:
+   - Application branding with industrial badge, live theme picker (Warehouse / Military / Cyber Port / Dispatch Manifest), Quick Scan launcher, Activity Log drawer button, CSV export, Print action, and User profile pill with instant role switching.
+2. **Industrial Warehouse & Military Tactical Theming**:
+   - **🏭 Industrial Warehouse (Default)**: High-visibility safety amber accent (`#f59e0b`), industrial steel backgrounds, subtle hazard floor striping, and rugged display typography (`Chakra Petch`).
+   - **🪖 Army Quartermaster / Military Tactical**: Tactical olive drab (`#84a98c`), camo steel surfaces, desert sand text tones, and military depot inventory styling.
+   - **⚡ Cyber Cargo Port**: High-tech container port terminal with obsidian panels, safety neon cyan accents (`#06b6d4`), and modern logistics telemetry.
+   - **📋 Dispatch Manifest**: High-contrast light paper theme featuring safety hazard orange highlights (`#ea580c`) tailored for bright loading dock environments.
+   - Preserves active theme preference in browser `localStorage`.
+3. **Dashboard KPI Banner**:
+   - High-contrast metric tiles calculating dynamic inventory metrics in real-time.
+4. **Controls Bar**:
    - Real-time search input with integrated camera scanning icon, category dropdown filter, and primary action buttons.
-4. **Data Grid**:
+5. **Data Grid**:
    - Responsive inventory table featuring visual status pills (`Stocked`, `Low Stock`, `Out of Stock`), inline increment/decrement steppers, and action buttons.
-5. **Interactive Modals**:
+6. **Interactive Modals**:
    - **Barcode Camera Scanner Modal**: Camera preview viewfinder with targeting reticle, quick adjustment buttons, and session log.
-   - **Add/Edit Product Modal**: Comprehensive input fields with automatic SKU generator.
+   - **Add/Edit Product Modal**: Comprehensive input fields with real-time SKU validation and automatic SKU generator.
    - **Detailed Stock Adjustment Modal**: Step counters and mandatory operational reason selector.
    - **Activity Audit Drawer**: Historical log with timestamp, user attribution, and quantity deltas.
 
