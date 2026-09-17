@@ -1,0 +1,3083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>📦 Inventory Management System</title>
+  <meta name="description" content="A full-stack Inventory Management System featuring user authentication, real-time stock adjustments, activity audit logs, CSV export, printable reports, SKU tracking, low stock alerts, and category filtering." />
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg-dark: #0b1329;
+      --bg-header: #111e38;
+      --card-bg: #ffffff;
+      --card-muted: #f8fafc;
+      --accent-blue: #2563eb;
+      --accent-blue-hover: #1d4ed8;
+      --accent-indigo: #4f46e5;
+      --text-dark: #0f172a;
+      --text-muted: #64748b;
+      --text-light: #f8fafc;
+      --border-color: #e2e8f0;
+      --border-dark: #1e293b;
+      --danger-red: #ef4444;
+      --danger-light: #fef2f2;
+      --danger-border: #fecaca;
+      --danger-badge-bg: #fee2e2;
+      --danger-badge-text: #b91c1c;
+      --success-green: #10b981;
+      --success-light: #ecfdf5;
+      --warning-amber: #f59e0b;
+      --warning-light: #fffbeb;
+      --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.08);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-dark);
+      min-height: 100vh;
+      padding-bottom: 80px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* 1. Header & Navigation */
+    .navbar {
+      background-color: var(--bg-header);
+      border-bottom: 1px solid #1e293b;
+      padding: 14px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-light);
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      text-decoration: none;
+    }
+
+    .version-pill {
+      background-color: #1e293b;
+      color: #94a3b8;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 600;
+      border: 1px solid #334155;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid #334155;
+      background-color: #1e293b;
+      color: #cbd5e1;
+      transition: all 0.15s ease;
+    }
+
+    .header-btn:hover {
+      background-color: #27354a;
+      color: #ffffff;
+      border-color: #475569;
+    }
+
+    .header-badges {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .badge-primary {
+      background-color: #1e293b;
+      color: #93c5fd;
+      border: 1px solid #334155;
+    }
+
+    .badge-danger {
+      background-color: #7f1d1d;
+      color: #fca5a5;
+      border: 1px solid #991b1b;
+      animation: pulseAlert 2.5s infinite ease-in-out;
+    }
+
+    @keyframes pulseAlert {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.85; }
+    }
+
+    /* User Profile Bar in Header */
+    .user-profile-menu {
+      position: relative;
+    }
+
+    .user-pill-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      background: linear-gradient(135deg, #1e293b, #25334d);
+      border: 1px solid #3b4d6e;
+      color: #ffffff;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+
+    .user-pill-btn:hover {
+      border-color: #60a5fa;
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.25);
+    }
+
+    .user-avatar {
+      font-size: 17px;
+      line-height: 1;
+    }
+
+    .user-role-badge {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 2px 7px;
+      border-radius: 9999px;
+      font-weight: 700;
+    }
+
+    .role-manager {
+      background-color: #3b82f6;
+      color: #ffffff;
+    }
+
+    .role-staff {
+      background-color: #10b981;
+      color: #ffffff;
+    }
+
+    .role-guest {
+      background-color: #64748b;
+      color: #ffffff;
+    }
+
+    .user-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background-color: #1e293b;
+      border: 1px solid #334155;
+      border-radius: var(--radius-md);
+      width: 270px;
+      box-shadow: var(--shadow-xl);
+      padding: 14px;
+      z-index: 50;
+      display: none;
+      animation: fadeIn 0.15s ease;
+    }
+
+    .user-dropdown.show {
+      display: block;
+    }
+
+    .dropdown-user-header {
+      padding-bottom: 12px;
+      border-bottom: 1px solid #334155;
+      margin-bottom: 10px;
+    }
+
+    .dropdown-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+
+    .dropdown-username {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
+
+    .dropdown-permissions {
+      background-color: #0f172a;
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      font-size: 11px;
+      color: #cbd5e1;
+      line-height: 1.4;
+      margin-bottom: 12px;
+      border: 1px solid #334155;
+    }
+
+    .dropdown-logout-btn {
+      width: 100%;
+      background-color: #ef4444;
+      color: #ffffff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background-color 0.15s ease;
+    }
+
+    .dropdown-logout-btn:hover {
+      background-color: #dc2626;
+    }
+
+    .login-nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: linear-gradient(135deg, #2563eb, #3b82f6);
+      color: #ffffff;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+      transition: all 0.15s ease;
+    }
+
+    .login-nav-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.6);
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 28px auto 0;
+      padding: 0 24px;
+    }
+
+    /* 2. Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background-color: var(--card-bg);
+      border-radius: var(--radius-md);
+      padding: 20px 22px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border-top: 4px solid var(--accent-blue);
+      border-left: 1px solid var(--border-color);
+      border-right: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .stat-card.alert-card {
+      border-top-color: var(--danger-red);
+    }
+
+    .stat-card.success-card {
+      border-top-color: var(--success-green);
+    }
+
+    .stat-card.purple-card {
+      border-top-color: #8b5cf6;
+    }
+
+    .stat-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .stat-value {
+      font-size: 27px;
+      font-weight: 800;
+      color: var(--text-dark);
+      letter-spacing: -0.02em;
+    }
+
+    .stat-card.alert-card .stat-value {
+      color: #dc2626;
+    }
+
+    .stat-subtext {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* 3. Filter Tabs (All, Low Stock, Out of Stock, Healthy) */
+    .filter-tabs-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .filter-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 16px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid #334155;
+      background-color: #1e293b;
+      color: #94a3b8;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .filter-tab:hover {
+      background-color: #27354a;
+      color: #f1f5f9;
+    }
+
+    .filter-tab.active {
+      background-color: var(--accent-blue);
+      color: #ffffff;
+      border-color: var(--accent-blue);
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+    }
+
+    .tab-counter {
+      background-color: rgba(255, 255, 255, 0.2);
+      padding: 2px 7px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .filter-tab.active .tab-counter {
+      background-color: #ffffff;
+      color: var(--accent-blue);
+    }
+
+    /* 4. Controls Bar */
+    .controls-card {
+      background-color: var(--card-bg);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid var(--border-color);
+    }
+
+    .search-filter-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      flex: 1;
+      min-width: 320px;
+    }
+
+    .input-field, .select-field {
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text-dark);
+      background-color: #ffffff;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .input-field:focus, .select-field:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .search-input {
+      flex: 2;
+      min-width: 220px;
+    }
+
+    .category-select {
+      flex: 1;
+      min-width: 170px;
+      cursor: pointer;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background-color: var(--accent-blue);
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--accent-blue-hover);
+    }
+
+    .btn-secondary {
+      background-color: #f1f5f9;
+      color: #475569;
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background-color: #e2e8f0;
+      color: #1e293b;
+    }
+
+    .btn-danger {
+      background-color: var(--danger-red);
+      color: #ffffff;
+    }
+
+    .btn-danger:hover {
+      background-color: #dc2626;
+    }
+
+    .btn-success {
+      background-color: var(--success-green);
+      color: #ffffff;
+    }
+
+    .btn-success:hover {
+      background-color: #059669;
+    }
+
+    .btn-sm {
+      padding: 6px 11px;
+      font-size: 12px;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+
+    /* 5. Products Table */
+    .table-container {
+      background-color: var(--card-bg);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      overflow-x: auto;
+      border: 1px solid var(--border-color);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13.5px;
+    }
+
+    thead th {
+      background-color: #f8fafc;
+      color: #475569;
+      font-weight: 600;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-color);
+      white-space: nowrap;
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      user-select: none;
+    }
+
+    thead th.sortable {
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+    }
+
+    thead th.sortable:hover {
+      background-color: #edf2f7;
+      color: #1e293b;
+    }
+
+    .sort-indicator {
+      display: inline-block;
+      margin-left: 4px;
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    .sort-indicator.active {
+      color: var(--accent-blue);
+      font-weight: 800;
+    }
+
+    /* Table Rows & Smooth Background / State Transitions */
+    tbody tr {
+      background-color: #ffffff;
+      transition: background-color 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+                  opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+                  transform 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+                  box-shadow 0.3s ease;
+      will-change: background-color, opacity, transform;
+    }
+
+    tbody td {
+      padding: 13px 16px;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-dark);
+      vertical-align: middle;
+      background-color: transparent;
+      transition: background-color 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background-color: #f8fafc;
+    }
+
+    /* Low Stock Row - Smooth soft rose background */
+    tbody tr.row-low-stock {
+      background-color: #fff1f2;
+    }
+
+    tbody tr.row-low-stock:hover {
+      background-color: #ffe4e6;
+    }
+
+    /* Out of Stock Row - Distinct soft red background */
+    tbody tr.row-out-stock {
+      background-color: #fef2f2;
+    }
+
+    tbody tr.row-out-stock:hover {
+      background-color: #fee2e2;
+    }
+
+    /* Smooth pulse animation when row is marked as low stock */
+    @keyframes lowStockPulse {
+      0% {
+        background-color: #fecdd3;
+      }
+      50% {
+        background-color: #ffe4e6;
+      }
+      100% {
+        background-color: #fff1f2;
+      }
+    }
+
+    tbody tr.row-low-stock-pulse {
+      animation: lowStockPulse 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    /* Added Row Smooth Entry & Background Glow Transition */
+    @keyframes rowAddedGlow {
+      0% {
+        background-color: #bbf7d0;
+        opacity: 0;
+        transform: translateY(-8px) scale(0.99);
+      }
+      30% {
+        background-color: #dcfce7;
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+      75% {
+        background-color: #dcfce7;
+      }
+      100% {
+        background-color: inherit;
+      }
+    }
+
+    tbody tr.row-newly-added {
+      animation: rowAddedGlow 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Removed Row Smooth Exit Transition & Red Fade */
+    tbody tr.row-removing {
+      background-color: #fee2e2 !important;
+      opacity: 0 !important;
+      transform: translateX(45px) scale(0.97) !important;
+      pointer-events: none;
+      transition: background-color 0.42s cubic-bezier(0.4, 0, 0.2, 1),
+                  opacity 0.42s cubic-bezier(0.4, 0, 0.2, 1),
+                  transform 0.42s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+
+    /* SKU Tag */
+    .sku-chip {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      background-color: #f1f5f9;
+      color: #334155;
+      padding: 3px 7px;
+      border-radius: 4px;
+      border: 1px solid #cbd5e1;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-weight: 600;
+    }
+
+    .sku-chip:hover {
+      background-color: #e2e8f0;
+      border-color: #94a3b8;
+    }
+
+    /* Stock Level & Quick Adjust */
+    .stock-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .stock-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .stock-badge-low {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 700;
+      background-color: var(--danger-badge-bg);
+      color: var(--danger-badge-text);
+      border: 1px solid var(--danger-border);
+    }
+
+    .stock-badge-out {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 700;
+      background-color: #450a0a;
+      color: #fca5a5;
+      border: 1px solid #7f1d1d;
+    }
+
+    .stock-badge-normal {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 700;
+      background-color: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+
+    /* Stock Health Meter */
+    .health-meter-container {
+      width: 100%;
+      height: 5px;
+      background-color: #e2e8f0;
+      border-radius: 9999px;
+      overflow: hidden;
+      margin-top: 2px;
+    }
+
+    .health-meter-bar {
+      height: 100%;
+      border-radius: 9999px;
+      transition: width 0.3s ease;
+    }
+
+    .health-healthy { background-color: var(--success-green); }
+    .health-warning { background-color: var(--warning-amber); }
+    .health-danger { background-color: var(--danger-red); }
+
+    /* Quick +/- adjust buttons */
+    .quick-stock-controls {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      margin-top: 2px;
+    }
+
+    .btn-qty-mini {
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      border: 1px solid #cbd5e1;
+      background-color: #ffffff;
+      color: #334155;
+      font-size: 14px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.1s ease;
+    }
+
+    .btn-qty-mini:hover {
+      background-color: #f1f5f9;
+      border-color: #94a3b8;
+      color: var(--accent-blue);
+    }
+
+    .btn-adjust-link {
+      background: none;
+      border: none;
+      color: var(--accent-blue);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 0 4px;
+      text-decoration: underline;
+    }
+
+    .btn-adjust-link:hover {
+      color: var(--accent-blue-hover);
+    }
+
+    .category-chip {
+      display: inline-block;
+      padding: 3px 8px;
+      background-color: #eff6ff;
+      color: #1d4ed8;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid #dbeafe;
+    }
+
+    .price-tag {
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .total-val-tag {
+      font-weight: 600;
+      color: #475569;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .empty-state {
+      padding: 56px 24px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    .empty-state-icon {
+      font-size: 44px;
+      margin-bottom: 12px;
+    }
+
+    /* 6. Modals (Overlays & Structure) */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(11, 19, 41, 0.78);
+      backdrop-filter: blur(5px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 60;
+      padding: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal {
+      background-color: var(--card-bg);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 540px;
+      box-shadow: var(--shadow-xl);
+      overflow: hidden;
+      transform: translateY(12px);
+      transition: transform 0.2s ease;
+    }
+
+    .modal-overlay.active .modal {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #f8fafc;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-dark);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: var(--text-muted);
+      cursor: pointer;
+      line-height: 1;
+      padding: 4px;
+      transition: color 0.15s ease;
+    }
+
+    .modal-close:hover {
+      color: var(--text-dark);
+    }
+
+    .modal-body {
+      padding: 24px;
+      max-height: calc(85vh - 140px);
+      overflow-y: auto;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 6px;
+    }
+
+    label .req {
+      color: var(--danger-red);
+    }
+
+    .form-control {
+      width: 100%;
+    }
+
+    textarea.form-control {
+      resize: vertical;
+      min-height: 72px;
+    }
+
+    .field-error {
+      color: var(--danger-red);
+      font-size: 12px;
+      margin-top: 4px;
+      display: none;
+      font-weight: 500;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border-color);
+      background-color: var(--card-muted);
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    /* Auth Modal Specific Styles */
+    .auth-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 20px;
+    }
+
+    .auth-tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s ease;
+    }
+
+    .auth-tab.active {
+      color: var(--accent-blue);
+      border-bottom-color: var(--accent-blue);
+    }
+
+    .demo-users-box {
+      background-color: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: var(--radius-md);
+      padding: 12px;
+      margin-bottom: 18px;
+    }
+
+    .demo-users-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .demo-btns-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .demo-login-chip {
+      flex: 1;
+      min-width: 140px;
+      background-color: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 12px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .demo-login-chip:hover {
+      border-color: var(--accent-blue);
+      background-color: #eff6ff;
+      transform: translateY(-1px);
+    }
+
+    .demo-chip-name {
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .demo-chip-role {
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    .password-wrapper {
+      position: relative;
+    }
+
+    .password-toggle-btn {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    /* Quick Stock Modal Presets */
+    .preset-chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .preset-chip {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid #cbd5e1;
+      background-color: #f8fafc;
+      cursor: pointer;
+      transition: all 0.1s ease;
+    }
+
+    .preset-chip.pos:hover {
+      background-color: #ecfdf5;
+      color: #065f46;
+      border-color: #10b981;
+    }
+
+    .preset-chip.neg:hover {
+      background-color: #fef2f2;
+      color: #991b1b;
+      border-color: #ef4444;
+    }
+
+    .stock-change-preview {
+      background-color: #f8fafc;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      margin-top: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .preview-qty-change {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--accent-blue);
+    }
+
+    /* Activity Log Modal */
+    .activity-modal {
+      max-width: 680px;
+    }
+
+    .activity-filter-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+    }
+
+    .act-filter-btn {
+      padding: 5px 12px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid var(--border-color);
+      background-color: #f8fafc;
+      color: #475569;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .act-filter-btn.active {
+      background-color: var(--accent-blue);
+      color: #ffffff;
+      border-color: var(--accent-blue);
+    }
+
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .timeline-item {
+      display: flex;
+      gap: 14px;
+      padding: 12px 14px;
+      background-color: #f8fafc;
+      border-radius: var(--radius-sm);
+      border-left: 3px solid #cbd5e1;
+      font-size: 13px;
+    }
+
+    .timeline-item.act-stock {
+      border-left-color: var(--success-green);
+    }
+
+    .timeline-item.act-create {
+      border-left-color: var(--accent-blue);
+    }
+
+    .timeline-item.act-update {
+      border-left-color: var(--warning-amber);
+    }
+
+    .timeline-item.act-delete {
+      border-left-color: var(--danger-red);
+    }
+
+    .timeline-content {
+      flex: 1;
+    }
+
+    .timeline-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .timeline-user {
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .timeline-time {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .timeline-detail {
+      color: #475569;
+    }
+
+    /* Barcode Label Modal */
+    .barcode-modal {
+      max-width: 440px;
+    }
+
+    .barcode-card {
+      border: 2px dashed #94a3b8;
+      border-radius: var(--radius-md);
+      padding: 24px;
+      text-align: center;
+      background-color: #ffffff;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .barcode-product-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .barcode-graphic {
+      height: 60px;
+      margin: 16px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+    }
+
+    .barcode-line {
+      height: 100%;
+      background-color: #0f172a;
+    }
+
+    .barcode-sku-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+    }
+
+    /* Toast Container */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 70;
+    }
+
+    .toast {
+      background-color: #1e293b;
+      color: #ffffff;
+      padding: 14px 18px;
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-xl);
+      font-size: 13.5px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 290px;
+      animation: toastIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      border-left: 4px solid var(--accent-blue);
+    }
+
+    .toast.toast-success {
+      border-left-color: var(--success-green);
+    }
+
+    .toast.toast-error {
+      border-left-color: var(--danger-red);
+    }
+
+    .toast.toast-warning {
+      border-left-color: var(--warning-amber);
+    }
+
+    @keyframes toastIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Print Styles */
+    @media print {
+      body {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        padding-bottom: 0 !important;
+      }
+      .navbar, .controls-card, .filter-tabs-row, .action-buttons, .quick-stock-controls, .btn, .toast-container, .modal-overlay {
+        display: none !important;
+      }
+      .container {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .stats-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+        box-shadow: none !important;
+      }
+      .stat-card {
+        border: 1px solid #ccc !important;
+        box-shadow: none !important;
+      }
+      .table-container {
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
+      }
+      th, td {
+        border: 1px solid #ddd !important;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .navbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 14px 18px;
+      }
+      .header-actions {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+      .form-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+      }
+      .controls-card {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .search-filter-group {
+        flex-direction: column;
+        min-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. Navbar -->
+  <header class="navbar" id="navbar">
+    <div class="brand-section">
+      <a href="#" class="brand">
+        <span>📦 Inventory Manager</span>
+      </a>
+      <span class="version-pill">v2.2 Pro</span>
+    </div>
+
+    <div class="header-actions">
+      <!-- Quick Action Buttons -->
+      <button class="header-btn" onclick="openActivityModal()" title="View stock movement & audit logs">
+        <span>📜</span> Activity Log
+      </button>
+      <button class="header-btn" onclick="exportToCsv()" title="Download inventory data as CSV">
+        <span>📥</span> Export CSV
+      </button>
+      <button class="header-btn" onclick="window.print()" title="Print inventory valuation sheet">
+        <span>🖨️</span> Print
+      </button>
+
+      <!-- Auth Section -->
+      <div class="user-profile-menu" id="authSection">
+        <!-- Dynamically rendered via renderAuthSection() -->
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- 2. Stats Grid -->
+    <section class="stats-grid" id="statsGrid">
+      <div class="stat-card" id="cardTotalProducts">
+        <div class="stat-title">Total Products</div>
+        <div class="stat-value" id="statTotalProducts">0</div>
+        <div class="stat-subtext" id="statActiveSkuCount">0 unique SKUs tracked</div>
+      </div>
+      <div class="stat-card purple-card" id="cardTotalCategories">
+        <div class="stat-title">Categories</div>
+        <div class="stat-value" id="statTotalCategories">0</div>
+        <div class="stat-subtext">Product groups cataloged</div>
+      </div>
+      <div class="stat-card alert-card" id="cardLowStock">
+        <div class="stat-title">Low Stock Alerts</div>
+        <div class="stat-value" id="statLowStock">0</div>
+        <div class="stat-subtext" id="statLowStockSub">Items at or below threshold</div>
+      </div>
+      <div class="stat-card success-card" id="cardInventoryValue">
+        <div class="stat-title">Total Inventory Valuation</div>
+        <div class="stat-value" id="statTotalValue">$0.00</div>
+        <div class="stat-subtext">Current cumulative asset value</div>
+      </div>
+    </section>
+
+    <!-- 3. Filter Tabs (All, Low Stock, Out of Stock, Well Stocked) -->
+    <div class="filter-tabs-row" id="filterTabsRow">
+      <button class="filter-tab active" data-tab="all" onclick="setFilterTab('all')">
+        <span>📦 All Items</span>
+        <span class="tab-counter" id="tabCountAll">0</span>
+      </button>
+      <button class="filter-tab" data-tab="low" onclick="setFilterTab('low')">
+        <span>⚠️ Low Stock</span>
+        <span class="tab-counter" id="tabCountLow">0</span>
+      </button>
+      <button class="filter-tab" data-tab="out" onclick="setFilterTab('out')">
+        <span>🚫 Out of Stock</span>
+        <span class="tab-counter" id="tabCountOut">0</span>
+      </button>
+      <button class="filter-tab" data-tab="healthy" onclick="setFilterTab('healthy')">
+        <span>✅ Well Stocked</span>
+        <span class="tab-counter" id="tabCountHealthy">0</span>
+      </button>
+    </div>
+
+    <!-- 4. Controls Bar -->
+    <section class="controls-card" id="controlsBar">
+      <div class="search-filter-group">
+        <input
+          type="text"
+          id="searchInput"
+          class="input-field search-input"
+          placeholder="🔍 Search by name, SKU (e.g. SKU-ELEC-204), or description..."
+          oninput="onSearchInput()"
+        />
+        <select
+          id="categoryFilter"
+          class="select-field category-select"
+          onchange="onCategoryFilterChange()"
+        >
+          <option value="all">All Categories</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" id="openAddModalBtn" onclick="handleOpenAddModal()">
+        <span>+</span> Add New Product
+      </button>
+    </section>
+
+    <!-- 5. Products Table -->
+    <div class="table-container" id="productsTableContainer">
+      <table id="productsTable">
+        <thead>
+          <tr>
+            <th class="sortable" onclick="handleSort('sku')">
+              SKU <span class="sort-indicator" id="sort_sku">↕</span>
+            </th>
+            <th class="sortable" onclick="handleSort('name')">
+              Product Name <span class="sort-indicator" id="sort_name">↕</span>
+            </th>
+            <th class="sortable" onclick="handleSort('category')">
+              Category <span class="sort-indicator" id="sort_category">↕</span>
+            </th>
+            <th class="sortable" onclick="handleSort('quantity')">
+              Stock Level & Health <span class="sort-indicator" id="sort_quantity">↕</span>
+            </th>
+            <th class="sortable" onclick="handleSort('price')">
+              Unit Price <span class="sort-indicator" id="sort_price">↕</span>
+            </th>
+            <th class="sortable" onclick="handleSort('total_value')">
+              Total Value <span class="sort-indicator" id="sort_total_value">↕</span>
+            </th>
+            <th>Low Threshold</th>
+            <th class="sortable" onclick="handleSort('created_at')">
+              Added On <span class="sort-indicator" id="sort_created_at">↕</span>
+            </th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="productsTableBody">
+          <!-- Rendered dynamically via JavaScript -->
+        </tbody>
+      </table>
+
+      <div id="emptyState" class="empty-state" style="display: none;">
+        <div class="empty-state-icon">📋</div>
+        <h3>No products found</h3>
+        <p>Try adjusting your search keywords, filter tab, or add a new product to your inventory.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 1: Add / Edit Product Modal -->
+  <div class="modal-overlay" id="productModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalTitle">Add New Product</h3>
+        <button class="modal-close" onclick="closeProductModal()" aria-label="Close modal">&times;</button>
+      </div>
+      <form id="productForm" onsubmit="saveProduct(event)" novalidate>
+        <div class="modal-body">
+          <input type="hidden" id="productId" />
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="productName">Product Name <span class="req">*</span></label>
+              <input
+                type="text"
+                id="productName"
+                class="input-field form-control"
+                placeholder="e.g. Ergonomic Office Chair"
+                required
+              />
+              <div class="field-error" id="nameError">Product name is required.</div>
+            </div>
+
+            <div class="form-group">
+              <label for="productSku">SKU Code (Optional)</label>
+              <input
+                type="text"
+                id="productSku"
+                class="input-field form-control"
+                placeholder="Auto-generated if empty"
+                style="text-transform: uppercase;"
+              />
+              <div class="field-error" id="skuError">Invalid SKU format.</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="productCategory">Category <span class="req">*</span></label>
+            <input
+              type="text"
+              id="productCategory"
+              list="categoryDatalist"
+              class="input-field form-control"
+              placeholder="e.g. Furniture, Electronics, Accessories"
+              required
+            />
+            <datalist id="categoryDatalist"></datalist>
+            <div class="field-error" id="categoryError">Category is required.</div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="productQuantity">Initial Quantity <span class="req">*</span></label>
+              <input
+                type="number"
+                id="productQuantity"
+                class="input-field form-control"
+                min="0"
+                step="1"
+                placeholder="0"
+                required
+              />
+              <div class="field-error" id="quantityError">Must be an integer &ge; 0.</div>
+            </div>
+
+            <div class="form-group">
+              <label for="productPrice">Unit Price ($) <span class="req">*</span></label>
+              <input
+                type="number"
+                id="productPrice"
+                class="input-field form-control"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                required
+              />
+              <div class="field-error" id="priceError">Must be a number &ge; 0.</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="productLowStock">Low Stock Threshold <span class="req">*</span></label>
+            <input
+              type="number"
+              id="productLowStock"
+              class="input-field form-control"
+              min="0"
+              step="1"
+              value="10"
+              required
+            />
+            <div class="field-error" id="lowStockError">Must be an integer &ge; 0.</div>
+          </div>
+
+          <div class="form-group">
+            <label for="productDescription">Description & Notes (Optional)</label>
+            <textarea
+              id="productDescription"
+              class="input-field form-control"
+              rows="3"
+              placeholder="Enter technical specifications, supplier, shelf location, etc."
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeProductModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveProductBtn">Save Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 2: Quick Stock Adjustment Modal -->
+  <div class="modal-overlay" id="stockAdjustModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">⚡ Quick Stock Adjustment</h3>
+        <button class="modal-close" onclick="closeStockAdjustModal()">&times;</button>
+      </div>
+      <form id="stockAdjustForm" onsubmit="submitStockAdjustment(event)">
+        <div class="modal-body">
+          <input type="hidden" id="adjustProductId" />
+          
+          <div style="margin-bottom: 16px;">
+            <strong id="adjustProductName" style="font-size: 16px; color: #0f172a;"></strong>
+            <div style="font-size: 13px; color: #64748b; margin-top: 2px;" id="adjustProductSku"></div>
+          </div>
+
+          <div style="margin-bottom: 14px;">
+            <label>Current Stock Level:</label>
+            <span id="adjustCurrentStock" style="font-size: 20px; font-weight: 800; color: #1e293b;"></span>
+          </div>
+
+          <label>Quick Presets (Click to Add / Subtract):</label>
+          <div class="preset-chips">
+            <button type="button" class="preset-chip pos" onclick="applyStockPreset(1)">+1 Unit</button>
+            <button type="button" class="preset-chip pos" onclick="applyStockPreset(5)">+5 Units</button>
+            <button type="button" class="preset-chip pos" onclick="applyStockPreset(10)">+10 Restock</button>
+            <button type="button" class="preset-chip pos" onclick="applyStockPreset(25)">+25 Bulk</button>
+            <button type="button" class="preset-chip neg" onclick="applyStockPreset(-1)">-1 Sale</button>
+            <button type="button" class="preset-chip neg" onclick="applyStockPreset(-5)">-5 Order</button>
+            <button type="button" class="preset-chip neg" onclick="applyStockPreset(-10)">-10 Return/Scrap</button>
+          </div>
+
+          <div class="form-group">
+            <label for="adjustDeltaInput">Quantity Change (+ to Add, - to Remove) <span class="req">*</span></label>
+            <input
+              type="number"
+              id="adjustDeltaInput"
+              class="input-field form-control"
+              step="1"
+              placeholder="e.g. 10 or -3"
+              oninput="updateStockPreview()"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="adjustReason">Reason for Movement <span class="req">*</span></label>
+            <select id="adjustReason" class="select-field form-control" required>
+              <option value="Restock / Shipment Delivery">📦 Restock / Shipment Delivery</option>
+              <option value="Customer Sale / Fulfillment">🛒 Customer Sale / Fulfillment</option>
+              <option value="Customer Return">🔄 Customer Return</option>
+              <option value="Damaged / Scrapped Inventory">⚠️ Damaged / Scrapped Inventory</option>
+              <option value="Physical Audit / Recount">⚖️ Physical Audit / Recount Adjustment</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="adjustNotes">Reference / PO / Notes (Optional)</label>
+            <input
+              type="text"
+              id="adjustNotes"
+              class="input-field form-control"
+              placeholder="e.g. Order #5092 or Supplier Invoice #883"
+            />
+          </div>
+
+          <div class="stock-change-preview">
+            <span>Resulting Stock Level:</span>
+            <span class="preview-qty-change" id="adjustResultPreview">—</span>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeStockAdjustModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="confirmStockAdjustBtn">Confirm Adjustment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 3: Activity & Audit Logs Modal -->
+  <div class="modal-overlay" id="activityModal">
+    <div class="modal activity-modal">
+      <div class="modal-header">
+        <h3 class="modal-title">📜 Inventory Activity & Audit Trail</h3>
+        <button class="modal-close" onclick="closeActivityModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="activity-filter-bar">
+          <button class="act-filter-btn active" onclick="filterActivityLogs('ALL', this)">All (All)</button>
+          <button class="act-filter-btn" onclick="filterActivityLogs('STOCK_ADJUST', this)">Stock Adjustments</button>
+          <button class="act-filter-btn" onclick="filterActivityLogs('CREATE', this)">Item Created</button>
+          <button class="act-filter-btn" onclick="filterActivityLogs('UPDATE', this)">Item Updated</button>
+          <button class="act-filter-btn" onclick="filterActivityLogs('DELETE', this)">Item Deleted</button>
+        </div>
+
+        <div class="timeline" id="activityTimeline">
+          <!-- Populated dynamically via renderActivityLogs() -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeActivityModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: User Authentication Modal (Login & Register) -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="authModalTitle">🔐 Sign In to Inventory System</h3>
+        <button class="modal-close" onclick="closeAuthModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- Tab Switcher -->
+        <div class="auth-tabs">
+          <div class="auth-tab active" id="tabSignIn" onclick="switchAuthTab('login')">Sign In</div>
+          <div class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')">Create Account</div>
+        </div>
+
+        <!-- 1-Click Demo Accounts Box -->
+        <div class="demo-users-box" id="demoAccountsBox">
+          <div class="demo-users-title">⚡ Quick 1-Click Demo Logins:</div>
+          <div class="demo-btns-row">
+            <button type="button" class="demo-login-chip" onclick="quickLogin('admin', 'admin123')">
+              <span class="demo-chip-name">👩‍💼 Sarah Connor</span>
+              <span class="demo-chip-role">Manager (Full Access)</span>
+            </button>
+            <button type="button" class="demo-login-chip" onclick="quickLogin('staff', 'staff123')">
+              <span class="demo-chip-name">👨‍🔧 Alex Rivera</span>
+              <span class="demo-chip-role">Warehouse Staff</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Login Form -->
+        <form id="loginForm" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label for="loginUsername">Username <span class="req">*</span></label>
+            <input
+              type="text"
+              id="loginUsername"
+              class="input-field form-control"
+              placeholder="e.g. admin or staff"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="loginPassword">Password <span class="req">*</span></label>
+            <div class="password-wrapper">
+              <input
+                type="password"
+                id="loginPassword"
+                class="input-field form-control"
+                placeholder="Enter password"
+                required
+              />
+              <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('loginPassword', this)">👁️</button>
+            </div>
+          </div>
+
+          <div id="loginError" class="field-error" style="margin-bottom: 12px;"></div>
+
+          <button type="submit" class="btn btn-primary form-control" id="loginSubmitBtn">
+            Sign In
+          </button>
+        </form>
+
+        <!-- Register Form -->
+        <form id="registerForm" onsubmit="handleRegister(event)" style="display: none;">
+          <div class="form-group">
+            <label for="regFullName">Full Name <span class="req">*</span></label>
+            <input
+              type="text"
+              id="regFullName"
+              class="input-field form-control"
+              placeholder="e.g. Michael Scott"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="regUsername">Username <span class="req">*</span></label>
+            <input
+              type="text"
+              id="regUsername"
+              class="input-field form-control"
+              placeholder="Choose a username"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="regRole">Role & Responsibility <span class="req">*</span></label>
+            <select id="regRole" class="select-field form-control" required>
+              <option value="manager">👩‍💼 Inventory Manager (Full Add / Edit / Delete / Stock Adjust)</option>
+              <option value="staff" selected>👨‍🔧 Warehouse Staff (Stock Adjust / Add / Edit)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="regPassword">Password <span class="req">*</span></label>
+            <div class="password-wrapper">
+              <input
+                type="password"
+                id="regPassword"
+                class="input-field form-control"
+                placeholder="Create a password (min 4 characters)"
+                minlength="4"
+                required
+              />
+              <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('regPassword', this)">👁️</button>
+            </div>
+          </div>
+
+          <div id="registerError" class="field-error" style="margin-bottom: 12px;"></div>
+
+          <button type="submit" class="btn btn-primary form-control" id="registerSubmitBtn">
+            Create Account & Sign In
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 5: Barcode / SKU Tag Modal -->
+  <div class="modal-overlay" id="barcodeModal">
+    <div class="modal barcode-modal">
+      <div class="modal-header">
+        <h3 class="modal-title">🏷️ Product SKU & Barcode</h3>
+        <button class="modal-close" onclick="closeBarcodeModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="barcode-card">
+          <div class="barcode-product-title" id="barcodeProductName">Product Name</div>
+          <div style="font-size: 13px; color: #64748b;" id="barcodeProductCat">Category</div>
+          
+          <!-- Graphic Simulated Code-128 Barcode -->
+          <div class="barcode-graphic" id="barcodeLines">
+            <!-- Simulated barcode vertical lines -->
+          </div>
+
+          <div class="barcode-sku-text" id="barcodeSkuCode">SKU-XXXX-000</div>
+          <div style="font-size: 14px; font-weight: 700; color: #1e293b; margin-top: 10px;" id="barcodeProductPrice">$0.00</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeBarcodeModal()">Close</button>
+        <button type="button" class="btn btn-primary" onclick="window.print()">🖨️ Print Label</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 6: Delete Confirmation Modal -->
+  <div class="modal-overlay" id="deleteConfirmModal">
+    <div class="modal confirm-modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Confirm Deletion</h3>
+        <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="confirm-text" id="deleteConfirmText">
+          Are you sure you want to delete this product? This action cannot be undone.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete Product</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Frontend Logic & State Management -->
+  <script>
+    // Configuration & State
+    const API_BASE = '/api';
+    let allProducts = [];
+    let currentAuthUser = null;
+    let authToken = localStorage.getItem('inv_auth_token') || null;
+    let pendingDeleteId = null;
+    let currentFilterTab = 'all'; // 'all', 'low', 'out', 'healthy'
+    let currentSortField = 'created_at';
+    let currentSortOrder = 'desc';
+    let cachedActivityLogs = [];
+    const newlyAddedProductIds = new Set();
+
+    // Initialize application on DOM ready
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Check stored token / authentication
+      await checkAuthStatus();
+      // Fetch products and logs
+      await fetchProducts();
+      await fetchActivityLogs();
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        const dropdown = document.getElementById('userDropdown');
+        const trigger = document.getElementById('userPillBtn');
+        if (dropdown && dropdown.classList.contains('show')) {
+          if (!dropdown.contains(e.target) && (!trigger || !trigger.contains(e.target))) {
+            dropdown.classList.remove('show');
+          }
+        }
+      });
+    });
+
+    // --- AUTHENTICATION MODULE ---
+    async function checkAuthStatus() {
+      if (!authToken) {
+        currentAuthUser = null;
+        renderAuthSection();
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/auth/me`, {
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Accept': 'application/json'
+          }
+        });
+
+        if (res.ok) {
+          currentAuthUser = await res.json();
+        } else {
+          // Token expired or invalid
+          authToken = null;
+          localStorage.removeItem('inv_auth_token');
+          currentAuthUser = null;
+        }
+      } catch (err) {
+        console.warn('Auth status check error:', err);
+      }
+      renderAuthSection();
+    }
+
+    function renderAuthSection() {
+      const container = document.getElementById('authSection');
+      if (!container) return;
+
+      if (currentAuthUser) {
+        const roleLabel = currentAuthUser.role === 'manager' ? 'Manager' : 'Staff';
+        const roleClass = currentAuthUser.role === 'manager' ? 'role-manager' : 'role-staff';
+        const roleDesc = currentAuthUser.role === 'manager'
+          ? 'Full Access: Add, Edit, Delete items, adjust inventory, and audit logs.'
+          : 'Staff Access: Stock adjustments, catalog adding and editing.';
+
+        container.innerHTML = `
+          <button class="user-pill-btn" id="userPillBtn" onclick="toggleUserDropdown(event)">
+            <span class="user-avatar">${escapeHtml(currentAuthUser.avatar || '👤')}</span>
+            <span>${escapeHtml(currentAuthUser.name)}</span>
+            <span class="user-role-badge ${roleClass}">${roleLabel}</span>
+            <span style="font-size: 10px; opacity: 0.7;">▼</span>
+          </button>
+
+          <div class="user-dropdown" id="userDropdown">
+            <div class="dropdown-user-header">
+              <div class="dropdown-name">${escapeHtml(currentAuthUser.name)}</div>
+              <div class="dropdown-username">@${escapeHtml(currentAuthUser.username)}</div>
+            </div>
+            <div class="dropdown-permissions">
+              <strong>Role: ${roleLabel}</strong><br />
+              ${roleDesc}
+            </div>
+            <button class="dropdown-logout-btn" onclick="handleLogout()">
+              🚪 Sign Out
+            </button>
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <button class="login-nav-btn" onclick="openAuthModal('login')">
+            <span>🔐</span> Sign In
+          </button>
+        `;
+      }
+    }
+
+    function toggleUserDropdown(e) {
+      e.stopPropagation();
+      const dropdown = document.getElementById('userDropdown');
+      if (dropdown) dropdown.classList.toggle('show');
+    }
+
+    function openAuthModal(mode = 'login') {
+      switchAuthTab(mode);
+      document.getElementById('loginError').style.display = 'none';
+      document.getElementById('registerError').style.display = 'none';
+      document.getElementById('authModal').classList.add('active');
+    }
+
+    function closeAuthModal() {
+      document.getElementById('authModal').classList.remove('active');
+    }
+
+    function switchAuthTab(tab) {
+      const isLogin = tab === 'login';
+      document.getElementById('tabSignIn').classList.toggle('active', isLogin);
+      document.getElementById('tabRegister').classList.toggle('active', !isLogin);
+      document.getElementById('loginForm').style.display = isLogin ? 'block' : 'none';
+      document.getElementById('registerForm').style.display = isLogin ? 'none' : 'block';
+      document.getElementById('demoAccountsBox').style.display = isLogin ? 'block' : 'none';
+      document.getElementById('authModalTitle').textContent = isLogin ? '🔐 Sign In to Inventory System' : '📝 Create New Account';
+    }
+
+    function togglePasswordVisibility(fieldId, btn) {
+      const input = document.getElementById(fieldId);
+      if (!input) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = '🔒';
+      } else {
+        input.type = 'password';
+        btn.textContent = '👁️';
+      }
+    }
+
+    async function quickLogin(username, password) {
+      document.getElementById('loginUsername').value = username;
+      document.getElementById('loginPassword').value = password;
+      const fakeEvent = { preventDefault: () => {} };
+      await handleLogin(fakeEvent);
+    }
+
+    async function handleLogin(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const errorEl = document.getElementById('loginError');
+      const submitBtn = document.getElementById('loginSubmitBtn');
+
+      errorEl.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Signing in...';
+
+      try {
+        const res = await fetch(`${API_BASE}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || 'Sign in failed.');
+        }
+
+        authToken = data.token;
+        localStorage.setItem('inv_auth_token', authToken);
+        currentAuthUser = data.user;
+        renderAuthSection();
+        closeAuthModal();
+        showToast(`Welcome back, ${data.user.name}!`, 'success');
+        await fetchActivityLogs();
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Sign In';
+      }
+    }
+
+    async function handleRegister(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      const name = document.getElementById('regFullName').value.trim();
+      const username = document.getElementById('regUsername').value.trim();
+      const role = document.getElementById('regRole').value;
+      const password = document.getElementById('regPassword').value;
+      const errorEl = document.getElementById('registerError');
+      const submitBtn = document.getElementById('registerSubmitBtn');
+
+      errorEl.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Creating account...';
+
+      try {
+        const res = await fetch(`${API_BASE}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, username, role, password })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || 'Account creation failed.');
+        }
+
+        authToken = data.token;
+        localStorage.setItem('inv_auth_token', authToken);
+        currentAuthUser = data.user;
+        renderAuthSection();
+        closeAuthModal();
+        showToast(`Account created! Welcome, ${data.user.name}!`, 'success');
+        await fetchActivityLogs();
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Create Account & Sign In';
+      }
+    }
+
+    async function handleLogout() {
+      if (authToken) {
+        try {
+          await fetch(`${API_BASE}/auth/logout`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${authToken}` }
+          });
+        } catch (err) {}
+      }
+      authToken = null;
+      localStorage.removeItem('inv_auth_token');
+      currentAuthUser = null;
+      renderAuthSection();
+      showToast('You have been signed out.', 'info');
+    }
+
+    // --- PRODUCTS MODULE ---
+    async function fetchProducts() {
+      try {
+        const res = await fetch(`${API_BASE}/products/`, {
+          headers: { 'Accept': 'application/json' }
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}: Failed to load products.`);
+        
+        allProducts = await res.json();
+        updateCategoryOptions(allProducts);
+        renderStats(allProducts);
+        applyFiltersAndRender();
+      } catch (err) {
+        console.error('Fetch products error:', err);
+        showToast(`Could not load products: ${err.message}`, 'error');
+      }
+    }
+
+    function updateCategoryOptions(products) {
+      const categorySelect = document.getElementById('categoryFilter');
+      const datalist = document.getElementById('categoryDatalist');
+      const currentSelected = categorySelect.value;
+
+      const categoryMap = {};
+      products.forEach(p => {
+        if (p.category) {
+          const cat = p.category.trim();
+          categoryMap[cat] = (categoryMap[cat] || 0) + 1;
+        }
+      });
+
+      const categories = Object.keys(categoryMap).sort();
+
+      categorySelect.innerHTML = '<option value="all">All Categories (Total)</option>';
+      categories.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = `${cat} (${categoryMap[cat]})`;
+        if (cat === currentSelected) opt.selected = true;
+        categorySelect.appendChild(opt);
+      });
+
+      datalist.innerHTML = '';
+      categories.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        datalist.appendChild(opt);
+      });
+    }
+
+    function renderStats(products) {
+      const totalProducts = products.length;
+      const categoriesSet = new Set(products.map(p => p.category ? p.category.trim().toLowerCase() : '').filter(Boolean));
+      
+      let lowStockCount = 0;
+      let outStockCount = 0;
+      let healthyCount = 0;
+      let totalValue = 0;
+
+      products.forEach(p => {
+        const qty = Number(p.quantity) || 0;
+        const price = Number(p.price) || 0;
+        const threshold = Number(p.low_stock_threshold !== undefined ? p.low_stock_threshold : 10);
+
+        if (qty === 0) {
+          outStockCount++;
+          lowStockCount++;
+        } else if (qty <= threshold) {
+          lowStockCount++;
+        } else {
+          healthyCount++;
+        }
+
+        totalValue += (qty * price);
+      });
+
+      document.getElementById('statTotalProducts').textContent = totalProducts.toLocaleString();
+      document.getElementById('statActiveSkuCount').textContent = `${totalProducts} unique SKUs tracked`;
+      document.getElementById('statTotalCategories').textContent = categoriesSet.size.toLocaleString();
+      document.getElementById('statLowStock').textContent = lowStockCount.toLocaleString();
+      document.getElementById('statLowStockSub').textContent = `${lowStockCount} items need attention (${outStockCount} out of stock)`;
+      document.getElementById('statTotalValue').textContent = '$' + totalValue.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+
+      // Filter tabs counter badges
+      document.getElementById('tabCountAll').textContent = totalProducts;
+      document.getElementById('tabCountLow').textContent = lowStockCount;
+      document.getElementById('tabCountOut').textContent = outStockCount;
+      document.getElementById('tabCountHealthy').textContent = healthyCount;
+    }
+
+    function setFilterTab(tabName) {
+      currentFilterTab = tabName;
+      document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.tab === tabName);
+      });
+      applyFiltersAndRender();
+    }
+
+    function onSearchInput() {
+      applyFiltersAndRender();
+    }
+
+    function onCategoryFilterChange() {
+      applyFiltersAndRender();
+    }
+
+    function handleSort(field) {
+      if (currentSortField === field) {
+        currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
+      } else {
+        currentSortField = field;
+        currentSortOrder = 'asc';
+      }
+
+      // Update sort indicators
+      document.querySelectorAll('.sort-indicator').forEach(el => {
+        el.textContent = '↕';
+        el.classList.remove('active');
+      });
+      const activeIndicator = document.getElementById(`sort_${field}`);
+      if (activeIndicator) {
+        activeIndicator.textContent = currentSortOrder === 'asc' ? '↑' : '↓';
+        activeIndicator.classList.add('active');
+      }
+
+      applyFiltersAndRender();
+    }
+
+    function applyFiltersAndRender() {
+      const searchVal = document.getElementById('searchInput').value.trim().toLowerCase();
+      const categoryVal = document.getElementById('categoryFilter').value;
+
+      let filtered = allProducts.filter(p => {
+        const matchesSearch = !searchVal || 
+          (p.name && p.name.toLowerCase().includes(searchVal)) ||
+          (p.sku && p.sku.toLowerCase().includes(searchVal)) ||
+          (p.description && p.description.toLowerCase().includes(searchVal)) ||
+          (p.category && p.category.toLowerCase().includes(searchVal));
+
+        const matchesCategory = (categoryVal === 'all') || (p.category && p.category.toLowerCase() === categoryVal.toLowerCase());
+
+        const qty = Number(p.quantity) || 0;
+        const threshold = Number(p.low_stock_threshold !== undefined ? p.low_stock_threshold : 10);
+
+        let matchesTab = true;
+        if (currentFilterTab === 'low') {
+          matchesTab = qty <= threshold;
+        } else if (currentFilterTab === 'out') {
+          matchesTab = qty === 0;
+        } else if (currentFilterTab === 'healthy') {
+          matchesTab = qty > threshold;
+        }
+
+        return matchesSearch && matchesCategory && matchesTab;
+      });
+
+      // Sort filtered products
+      filtered.sort((a, b) => {
+        let valA, valB;
+        if (currentSortField === 'sku') {
+          valA = (a.sku || '').toLowerCase();
+          valB = (b.sku || '').toLowerCase();
+        } else if (currentSortField === 'name') {
+          valA = a.name.toLowerCase();
+          valB = b.name.toLowerCase();
+        } else if (currentSortField === 'category') {
+          valA = a.category.toLowerCase();
+          valB = b.category.toLowerCase();
+        } else if (currentSortField === 'quantity') {
+          valA = Number(a.quantity) || 0;
+          valB = Number(b.quantity) || 0;
+        } else if (currentSortField === 'price') {
+          valA = Number(a.price) || 0;
+          valB = Number(b.price) || 0;
+        } else if (currentSortField === 'total_value') {
+          valA = (Number(a.quantity) || 0) * (Number(a.price) || 0);
+          valB = (Number(b.quantity) || 0) * (Number(b.price) || 0);
+        } else {
+          valA = new Date(a.created_at || 0).getTime();
+          valB = new Date(b.created_at || 0).getTime();
+        }
+
+        if (valA < valB) return currentSortOrder === 'asc' ? -1 : 1;
+        if (valA > valB) return currentSortOrder === 'asc' ? 1 : -1;
+        return 0;
+      });
+
+      renderTable(filtered);
+    }
+
+    function renderTable(products) {
+      const tbody = document.getElementById('productsTableBody');
+      const emptyState = document.getElementById('emptyState');
+
+      if (products.length === 0) {
+        tbody.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
+      }
+      emptyState.style.display = 'none';
+
+      const activeIds = new Set(products.map(p => p.id));
+
+      // Remove rows that are no longer in the list (unless currently undergoing remove animation)
+      Array.from(tbody.querySelectorAll('tr[data-product-id]')).forEach(row => {
+        const rowId = parseInt(row.getAttribute('data-product-id'), 10);
+        if (!activeIds.has(rowId) && !row.classList.contains('row-removing')) {
+          row.remove();
+        }
+      });
+
+      products.forEach(product => {
+        const qty = Number(product.quantity) || 0;
+        const threshold = Number(product.low_stock_threshold !== undefined ? product.low_stock_threshold : 10);
+        const isOut = qty === 0;
+        const isLow = qty <= threshold;
+        const priceNum = Number(product.price) || 0;
+        const totalVal = qty * priceNum;
+
+        let tr = document.getElementById(`product-row-${product.id}`);
+        const isNew = !tr;
+
+        if (isNew) {
+          tr = document.createElement('tr');
+          tr.id = `product-row-${product.id}`;
+          tr.setAttribute('data-product-id', product.id);
+
+          if (newlyAddedProductIds.has(product.id)) {
+            tr.classList.add('row-newly-added');
+            setTimeout(() => {
+              if (tr) tr.classList.remove('row-newly-added');
+              newlyAddedProductIds.delete(product.id);
+            }, 2000);
+          }
+        }
+
+        const wasLow = tr.classList.contains('row-low-stock') || tr.classList.contains('row-out-stock');
+        const isNowLow = isLow || isOut;
+
+        // Manage smooth transition classes for low stock & out of stock
+        tr.classList.remove('row-out-stock', 'row-low-stock');
+        if (isOut) {
+          tr.classList.add('row-out-stock');
+        } else if (isLow) {
+          tr.classList.add('row-low-stock');
+        }
+
+        // Smooth pulse flash if row was marked as low stock
+        if (!isNew && !wasLow && isNowLow) {
+          tr.classList.add('row-low-stock-pulse');
+          setTimeout(() => {
+            if (tr) tr.classList.remove('row-low-stock-pulse');
+          }, 1400);
+        }
+
+        // Calculate health bar percentage
+        const maxBar = Math.max(threshold * 2.5, 30);
+        const barPercent = Math.min(100, Math.round((qty / maxBar) * 100));
+        let healthClass = 'health-healthy';
+        if (isOut || isLow) healthClass = 'health-danger';
+        else if (qty <= threshold * 1.5) healthClass = 'health-warning';
+
+        let formattedDate = '—';
+        if (product.created_at) {
+          const d = new Date(product.created_at);
+          formattedDate = isNaN(d.getTime()) ? product.created_at : d.toLocaleDateString(undefined, {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          });
+        }
+
+        const skuCode = product.sku || `SKU-ITEM-${product.id}`;
+
+        tr.innerHTML = `
+          <td>
+            <span class="sku-chip" onclick="copySku('${escapeHtml(skuCode)}')" title="Click to copy SKU">
+              <span>📋</span> ${escapeHtml(skuCode)}
+            </span>
+            <button class="btn-adjust-link" onclick="openBarcodeModal(${product.id})" style="display: block; margin-top: 3px;" title="View Barcode Label">
+              🏷️ Barcode
+            </button>
+          </td>
+          <td>
+            <strong>${escapeHtml(product.name)}</strong>
+            ${product.description ? `<div style="font-size: 11.5px; color: var(--text-muted); max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeHtml(product.description)}">${escapeHtml(product.description)}</div>` : ''}
+          </td>
+          <td><span class="category-chip">${escapeHtml(product.category)}</span></td>
+          <td>
+            <div class="stock-cell">
+              <div class="stock-header">
+                ${isOut
+                  ? `<span class="stock-badge-out">🚫 0 (Out)</span>`
+                  : (isLow
+                    ? `<span class="stock-badge-low">⚠️ ${qty} Low</span>`
+                    : `<span class="stock-badge-normal">✅ ${qty} Units</span>`
+                  )
+                }
+                <!-- Quick 1-click +/- controls -->
+                <div class="quick-stock-controls">
+                  <button class="btn-qty-mini" onclick="quickStepStock(${product.id}, -1)" title="Reduce stock by 1">−</button>
+                  <button class="btn-qty-mini" onclick="quickStepStock(${product.id}, 1)" title="Add stock by 1">+</button>
+                  <button class="btn-adjust-link" onclick="openStockAdjustModal(${product.id})">⚡ Adjust</button>
+                </div>
+              </div>
+              <div class="health-meter-container" title="Stock Health vs Threshold (${qty} / ${threshold})">
+                <div class="health-meter-bar ${healthClass}" style="width: ${Math.max(5, barPercent)}%;"></div>
+              </div>
+            </div>
+          </td>
+          <td><span class="price-tag">$${priceNum.toFixed(2)}</span></td>
+          <td><span class="total-val-tag">$${totalVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></td>
+          <td><span style="font-weight: 600; color: #64748b;">${threshold}</span></td>
+          <td style="color: var(--text-muted); font-size: 12.5px;">${formattedDate}</td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn btn-secondary btn-sm" onclick="handleOpenEditModal(${product.id})">
+                ✏️ Edit
+              </button>
+              <button class="btn btn-danger btn-sm" onclick="handleDeleteProduct(${product.id})">
+                🗑️ Delete
+              </button>
+            </div>
+          </td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    // --- QUICK STOCK STEP (+1 / -1) ---
+    async function quickStepStock(id, delta) {
+      if (!currentAuthUser) {
+        showToast('Please sign in to adjust stock levels.', 'warning');
+        openAuthModal('login');
+        return;
+      }
+
+      const product = allProducts.find(p => p.id === id);
+      if (!product) return;
+      if (delta < 0 && product.quantity <= 0) {
+        showToast('Product is already out of stock.', 'warning');
+        return;
+      }
+
+      const reason = delta > 0 ? 'Quick Restock (+1)' : 'Quick Sale / Fulfillment (-1)';
+
+      try {
+        const res = await fetch(`${API_BASE}/products/${id}/adjust-stock/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': authToken ? `Bearer ${authToken}` : ''
+          },
+          body: JSON.stringify({ delta, reason })
+        });
+
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.detail || 'Could not adjust stock');
+        }
+
+        const data = await res.json();
+        const updatedIdx = allProducts.findIndex(p => p.id === id);
+        if (updatedIdx !== -1) {
+          allProducts[updatedIdx] = data.product;
+        }
+
+        showToast(`${product.name}: ${delta > 0 ? '+1 unit added' : '-1 unit sold'} (New Stock: ${data.product.quantity})`, 'success');
+        renderStats(allProducts);
+        applyFiltersAndRender();
+        await fetchActivityLogs();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    // --- QUICK STOCK ADJUST MODAL ---
+    function openStockAdjustModal(id) {
+      if (!currentAuthUser) {
+        showToast('Please sign in to adjust stock levels.', 'warning');
+        openAuthModal('login');
+        return;
+      }
+
+      const product = allProducts.find(p => p.id === id);
+      if (!product) return;
+
+      document.getElementById('adjustProductId').value = product.id;
+      document.getElementById('adjustProductName').textContent = product.name;
+      document.getElementById('adjustProductSku').textContent = `SKU: ${product.sku || 'N/A'} • Category: ${product.category}`;
+      document.getElementById('adjustCurrentStock').textContent = `${product.quantity} units`;
+      document.getElementById('adjustDeltaInput').value = '';
+      document.getElementById('adjustNotes').value = '';
+      document.getElementById('adjustResultPreview').textContent = `${product.quantity} units`;
+
+      document.getElementById('stockAdjustModal').classList.add('active');
+    }
+
+    function closeStockAdjustModal() {
+      document.getElementById('stockAdjustModal').classList.remove('active');
+    }
+
+    function applyStockPreset(val) {
+      document.getElementById('adjustDeltaInput').value = val;
+      updateStockPreview();
+    }
+
+    function updateStockPreview() {
+      const id = parseInt(document.getElementById('adjustProductId').value, 10);
+      const product = allProducts.find(p => p.id === id);
+      if (!product) return;
+
+      const delta = parseInt(document.getElementById('adjustDeltaInput').value, 10);
+      if (isNaN(delta)) {
+        document.getElementById('adjustResultPreview').textContent = `${product.quantity} units`;
+        return;
+      }
+
+      const newQty = Math.max(0, product.quantity + delta);
+      document.getElementById('adjustResultPreview').textContent = `${product.quantity} ➔ ${newQty} units (${delta >= 0 ? '+' : ''}${delta})`;
+    }
+
+    async function submitStockAdjustment(e) {
+      e.preventDefault();
+      const id = parseInt(document.getElementById('adjustProductId').value, 10);
+      const delta = parseInt(document.getElementById('adjustDeltaInput').value, 10);
+      const reason = document.getElementById('adjustReason').value;
+      const notes = document.getElementById('adjustNotes').value.trim();
+
+      if (isNaN(delta) || delta === 0) {
+        showToast('Please enter a non-zero quantity change.', 'warning');
+        return;
+      }
+
+      const confirmBtn = document.getElementById('confirmStockAdjustBtn');
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'Updating...';
+
+      try {
+        const res = await fetch(`${API_BASE}/products/${id}/adjust-stock/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': authToken ? `Bearer ${authToken}` : ''
+          },
+          body: JSON.stringify({ delta, reason, notes })
+        });
+
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.detail || 'Stock adjustment failed');
+        }
+
+        const data = await res.json();
+        const updatedIdx = allProducts.findIndex(p => p.id === id);
+        if (updatedIdx !== -1) {
+          allProducts[updatedIdx] = data.product;
+        }
+
+        closeStockAdjustModal();
+        showToast(`Stock updated! New level: ${data.product.quantity} units`, 'success');
+        renderStats(allProducts);
+        applyFiltersAndRender();
+        await fetchActivityLogs();
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Confirm Adjustment';
+      }
+    }
+
+    // --- ACTIVITY & AUDIT LOGS MODULE ---
+    async function fetchActivityLogs() {
+      try {
+        const res = await fetch(`${API_BASE}/activity-logs/`);
+        if (res.ok) {
+          cachedActivityLogs = await res.json();
+          renderActivityLogs('ALL');
+        }
+      } catch (err) {
+        console.warn('Could not fetch activity logs:', err);
+      }
+    }
+
+    function openActivityModal() {
+      renderActivityLogs('ALL');
+      document.getElementById('activityModal').classList.add('active');
+    }
+
+    function closeActivityModal() {
+      document.getElementById('activityModal').classList.remove('active');
+    }
+
+    function filterActivityLogs(filterType, btn) {
+      if (btn) {
+        document.querySelectorAll('.act-filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+      renderActivityLogs(filterType);
+    }
+
+    function renderActivityLogs(filterType) {
+      const container = document.getElementById('activityTimeline');
+      if (!container) return;
+
+      const logs = (filterType === 'ALL')
+        ? cachedActivityLogs
+        : cachedActivityLogs.filter(l => l.action === filterType);
+
+      if (logs.length === 0) {
+        container.innerHTML = '<div style="text-align: center; color: #94a3b8; padding: 24px;">No activity logs for this filter.</div>';
+        return;
+      }
+
+      container.innerHTML = logs.map(l => {
+        let actionClass = 'act-stock';
+        let actionIcon = '📦';
+        if (l.action === 'CREATE') { actionClass = 'act-create'; actionIcon = '✨'; }
+        else if (l.action === 'UPDATE') { actionClass = 'act-update'; actionIcon = '✏️'; }
+        else if (l.action === 'DELETE') { actionClass = 'act-delete'; actionIcon = '🗑️'; }
+
+        const timeStr = formatRelativeTime(l.timestamp);
+
+        return `
+          <div class="timeline-item ${actionClass}">
+            <div style="font-size: 18px; line-height: 1;">${actionIcon}</div>
+            <div class="timeline-content">
+              <div class="timeline-header">
+                <span class="timeline-user">${escapeHtml(l.userName || 'System')} <span style="font-size: 11px; font-weight: normal; color: #64748b;">(${escapeHtml(l.userRole || 'staff')})</span></span>
+                <span class="timeline-time">${timeStr}</span>
+              </div>
+              <div style="font-weight: 600; color: #1e293b; margin-bottom: 2px;">
+                ${escapeHtml(l.productName)} ${l.sku ? `<span style="font-size: 11px; color: #64748b;">[${escapeHtml(l.sku)}]</span>` : ''}
+              </div>
+              <div class="timeline-detail">${escapeHtml(l.details)}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function formatRelativeTime(isoString) {
+      if (!isoString) return 'recently';
+      const d = new Date(isoString);
+      if (isNaN(d.getTime())) return isoString;
+      const now = new Date();
+      const diffMs = now.getTime() - d.getTime();
+      const diffSec = Math.floor(diffMs / 1000);
+      const diffMin = Math.floor(diffSec / 60);
+      const diffHr = Math.floor(diffMin / 60);
+      const diffDay = Math.floor(diffHr / 24);
+
+      if (diffSec < 60) return 'just now';
+      if (diffMin < 60) return `${diffMin}m ago`;
+      if (diffHr < 24) return `${diffHr}h ago`;
+      if (diffDay < 7) return `${diffDay}d ago`;
+      return d.toLocaleDateString();
+    }
+
+    // --- ADD / EDIT PRODUCT MODAL ---
+    function handleOpenAddModal() {
+      if (!currentAuthUser) {
+        showToast('Please sign in to add new inventory products.', 'warning');
+        openAuthModal('login');
+        return;
+      }
+
+      document.getElementById('modalTitle').textContent = 'Add New Product';
+      document.getElementById('productId').value = '';
+      document.getElementById('productName').value = '';
+      document.getElementById('productSku').value = '';
+      document.getElementById('productCategory').value = '';
+      document.getElementById('productQuantity').value = '';
+      document.getElementById('productPrice').value = '';
+      document.getElementById('productLowStock').value = '10';
+      document.getElementById('productDescription').value = '';
+      clearErrors();
+
+      document.getElementById('productModal').classList.add('active');
+      setTimeout(() => document.getElementById('productName').focus(), 50);
+    }
+
+    async function handleOpenEditModal(id) {
+      if (!currentAuthUser) {
+        showToast('Please sign in to edit inventory items.', 'warning');
+        openAuthModal('login');
+        return;
+      }
+
+      clearErrors();
+      const product = allProducts.find(p => p.id === id);
+      if (product) {
+        populateAndShowEdit(product);
+      } else {
+        try {
+          const res = await fetch(`${API_BASE}/products/${id}/`);
+          if (!res.ok) throw new Error('Product not found');
+          const fetched = await res.json();
+          populateAndShowEdit(fetched);
+        } catch (err) {
+          showToast(`Error: ${err.message}`, 'error');
+        }
+      }
+    }
+
+    function populateAndShowEdit(product) {
+      document.getElementById('modalTitle').textContent = 'Edit Product Details';
+      document.getElementById('productId').value = product.id;
+      document.getElementById('productName').value = product.name;
+      document.getElementById('productSku').value = product.sku || '';
+      document.getElementById('productCategory').value = product.category;
+      document.getElementById('productQuantity').value = product.quantity;
+      document.getElementById('productPrice').value = product.price;
+      document.getElementById('productLowStock').value = product.low_stock_threshold !== undefined ? product.low_stock_threshold : 10;
+      document.getElementById('productDescription').value = product.description || '';
+
+      document.getElementById('productModal').classList.add('active');
+      setTimeout(() => document.getElementById('productName').focus(), 50);
+    }
+
+    function closeProductModal() {
+      document.getElementById('productModal').classList.remove('active');
+    }
+
+    function clearErrors() {
+      document.querySelectorAll('.field-error').forEach(el => el.style.display = 'none');
+    }
+
+    function validateProductForm(data) {
+      let isValid = true;
+      clearErrors();
+
+      if (!data.name || !data.name.trim()) {
+        document.getElementById('nameError').textContent = 'Product name is required.';
+        document.getElementById('nameError').style.display = 'block';
+        isValid = false;
+      }
+
+      if (!data.category || !data.category.trim()) {
+        document.getElementById('categoryError').textContent = 'Category is required.';
+        document.getElementById('categoryError').style.display = 'block';
+        isValid = false;
+      }
+
+      if (data.quantity === '' || isNaN(data.quantity) || !Number.isInteger(Number(data.quantity)) || Number(data.quantity) < 0) {
+        document.getElementById('quantityError').textContent = 'Quantity must be an integer >= 0.';
+        document.getElementById('quantityError').style.display = 'block';
+        isValid = false;
+      }
+
+      if (data.price === '' || isNaN(data.price) || Number(data.price) < 0) {
+        document.getElementById('priceError').textContent = 'Price must be a number >= 0.00.';
+        document.getElementById('priceError').style.display = 'block';
+        isValid = false;
+      }
+
+      if (data.low_stock_threshold === '' || isNaN(data.low_stock_threshold) || !Number.isInteger(Number(data.low_stock_threshold)) || Number(data.low_stock_threshold) < 0) {
+        document.getElementById('lowStockError').textContent = 'Low stock threshold must be >= 0.';
+        document.getElementById('lowStockError').style.display = 'block';
+        isValid = false;
+      }
+
+      return isValid;
+    }
+
+    async function saveProduct(e) {
+      e.preventDefault();
+
+      const id = document.getElementById('productId').value;
+      const isEditing = Boolean(id);
+
+      const rawData = {
+        name: document.getElementById('productName').value.trim(),
+        sku: document.getElementById('productSku').value.trim(),
+        category: document.getElementById('productCategory').value.trim(),
+        quantity: document.getElementById('productQuantity').value.trim(),
+        price: document.getElementById('productPrice').value.trim(),
+        low_stock_threshold: document.getElementById('productLowStock').value.trim(),
+        description: document.getElementById('productDescription').value.trim(),
+      };
+
+      if (!validateProductForm(rawData)) return;
+
+      const payload = {
+        name: rawData.name,
+        sku: rawData.sku,
+        category: rawData.category,
+        quantity: parseInt(rawData.quantity, 10),
+        price: parseFloat(rawData.price).toFixed(2),
+        low_stock_threshold: parseInt(rawData.low_stock_threshold, 10),
+        description: rawData.description,
+      };
+
+      const saveBtn = document.getElementById('saveProductBtn');
+      const originalText = saveBtn.innerHTML;
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = 'Saving...';
+
+      try {
+        const endpoint = isEditing ? `${API_BASE}/products/${id}/` : `${API_BASE}/products/`;
+        const method = isEditing ? 'PUT' : 'POST';
+
+        const res = await fetch(endpoint, {
+          method: method,
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': authToken ? `Bearer ${authToken}` : ''
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const resData = await res.json();
+
+        if (!res.ok) {
+          if (res.status === 400 && typeof resData === 'object') {
+            for (const [field, messages] of Object.entries(resData)) {
+              const msg = Array.isArray(messages) ? messages.join(' ') : String(messages);
+              const errEl = document.getElementById(`${field}Error`);
+              if (errEl) {
+                errEl.textContent = msg;
+                errEl.style.display = 'block';
+              }
+            }
+            return;
+          }
+          throw new Error(resData.detail || resData.message || `Server error: HTTP ${res.status}`);
+        }
+
+        if (!isEditing && resData && resData.id) {
+          newlyAddedProductIds.add(resData.id);
+        }
+
+        closeProductModal();
+        showToast(isEditing ? 'Product updated successfully!' : 'Product added to inventory!', 'success');
+        await fetchProducts();
+        await fetchActivityLogs();
+      } catch (err) {
+        showToast(`Save failed: ${err.message}`, 'error');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = originalText;
+      }
+    }
+
+    // --- DELETE MODULE ---
+    function handleDeleteProduct(id) {
+      if (!currentAuthUser) {
+        showToast('Please sign in to delete inventory items.', 'warning');
+        openAuthModal('login');
+        return;
+      }
+
+      if (currentAuthUser.role !== 'manager') {
+        showToast('Deletion requires Inventory Manager privileges.', 'warning');
+        return;
+      }
+
+      const product = allProducts.find(p => p.id === id);
+      const name = product ? product.name : 'this item';
+      pendingDeleteId = id;
+
+      document.getElementById('deleteConfirmText').textContent =
+        `Are you sure you want to permanently delete "${name}" from inventory? This action cannot be undone.`;
+
+      document.getElementById('deleteConfirmModal').classList.add('active');
+
+      const confirmBtn = document.getElementById('confirmDeleteBtn');
+      confirmBtn.onclick = async () => {
+        const idToDelete = pendingDeleteId;
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Deleting...';
+
+        // Animate row removal smoothly (red background fade & slide out)
+        const rowEl = document.getElementById(`product-row-${idToDelete}`);
+        if (rowEl) {
+          rowEl.classList.add('row-removing');
+        }
+        closeDeleteModal();
+
+        try {
+          // Allow exit transition to play smoothly
+          await new Promise(r => setTimeout(r, 400));
+
+          const res = await fetch(`${API_BASE}/products/${idToDelete}/`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': authToken ? `Bearer ${authToken}` : ''
+            }
+          });
+
+          if (!res.ok) {
+            if (rowEl) rowEl.classList.remove('row-removing');
+            throw new Error(`HTTP ${res.status}`);
+          }
+
+          if (rowEl) rowEl.remove();
+          showToast('Product permanently deleted.', 'success');
+          await fetchProducts();
+          await fetchActivityLogs();
+        } catch (err) {
+          showToast(`Delete failed: ${err.message}`, 'error');
+        } finally {
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = 'Delete Product';
+        }
+      };
+    }
+
+    function closeDeleteModal() {
+      document.getElementById('deleteConfirmModal').classList.remove('active');
+      pendingDeleteId = null;
+    }
+
+    // --- BARCODE / SKU MODAL ---
+    function openBarcodeModal(id) {
+      const product = allProducts.find(p => p.id === id);
+      if (!product) return;
+
+      const sku = product.sku || `SKU-ITEM-${product.id}`;
+      document.getElementById('barcodeProductName').textContent = product.name;
+      document.getElementById('barcodeProductCat').textContent = `Category: ${product.category} • Qty: ${product.quantity} units`;
+      document.getElementById('barcodeSkuCode').textContent = sku;
+      document.getElementById('barcodeProductPrice').textContent = `Unit Price: $${Number(product.price).toFixed(2)}`;
+
+      // Generate visual barcode lines based on SKU characters
+      const container = document.getElementById('barcodeLines');
+      container.innerHTML = '';
+      const pattern = [2, 4, 1, 3, 2, 5, 2, 1, 4, 2, 3, 1, 5, 2, 4, 1, 3, 2, 4, 1, 5, 2, 3, 1, 4, 2];
+      pattern.forEach((width, idx) => {
+        const line = document.createElement('div');
+        line.className = 'barcode-line';
+        line.style.width = `${width}px`;
+        if (idx % 2 === 1) line.style.backgroundColor = '#000000';
+        else line.style.backgroundColor = '#1e293b';
+        container.appendChild(line);
+      });
+
+      document.getElementById('barcodeModal').classList.add('active');
+    }
+
+    function closeBarcodeModal() {
+      document.getElementById('barcodeModal').classList.remove('active');
+    }
+
+    function copySku(sku) {
+      navigator.clipboard.writeText(sku).then(() => {
+        showToast(`SKU '${sku}' copied to clipboard!`, 'info');
+      }).catch(() => {
+        showToast(`SKU: ${sku}`, 'info');
+      });
+    }
+
+    // --- CSV EXPORT MODULE ---
+    function exportToCsv() {
+      if (allProducts.length === 0) {
+        showToast('No products available to export.', 'warning');
+        return;
+      }
+
+      const headers = ['ID', 'SKU', 'Product Name', 'Category', 'Quantity', 'Unit Price ($)', 'Total Value ($)', 'Low Threshold', 'Stock Status', 'Added Date'];
+      const rows = allProducts.map(p => {
+        const qty = Number(p.quantity) || 0;
+        const price = Number(p.price) || 0;
+        const total = qty * price;
+        const threshold = Number(p.low_stock_threshold !== undefined ? p.low_stock_threshold : 10);
+        let status = 'In Stock';
+        if (qty === 0) status = 'Out of Stock';
+        else if (qty <= threshold) status = 'Low Stock';
+
+        return [
+          p.id,
+          `"${(p.sku || '').replace(/"/g, '""')}"`,
+          `"${p.name.replace(/"/g, '""')}"`,
+          `"${p.category.replace(/"/g, '""')}"`,
+          qty,
+          price.toFixed(2),
+          total.toFixed(2),
+          threshold,
+          `"${status}"`,
+          `"${p.created_at ? new Date(p.created_at).toISOString().split('T')[0] : ''}"`
+        ].join(',');
+      });
+
+      const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows].join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      const dateStr = new Date().toISOString().split('T')[0];
+      link.setAttribute('download', `inventory_report_${dateStr}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      showToast(`Exported ${allProducts.length} items to CSV!`, 'success');
+    }
+
+    // --- TOAST NOTIFICATIONS ---
+    function showToast(msg, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+
+      let icon = '✅';
+      if (type === 'error') icon = '❌';
+      else if (type === 'warning') icon = '⚠️';
+      else if (type === 'info') icon = 'ℹ️';
+
+      toast.innerHTML = `<span>${icon}</span> <span>${escapeHtml(msg)}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>

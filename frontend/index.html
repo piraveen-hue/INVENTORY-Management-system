@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>📦 Inventory Manager</title>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --card-bg: #ffffff;
+      --card-muted: #f8fafc;
+      --accent-blue: #3b82f6;
+      --accent-blue-hover: #2563eb;
+      --text-dark: #1e293b;
+      --text-muted: #64748b;
+      --text-light: #f8fafc;
+      --border-color: #e2e8f0;
+      --danger-red: #ef4444;
+      --danger-light: #fef2f2;
+      --danger-border: #fecaca;
+      --danger-badge-bg: #fee2e2;
+      --danger-badge-text: #b91c1c;
+      --success-green: #10b981;
+      --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-dark);
+      min-height: 100vh;
+      padding-bottom: 60px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* 1. Navbar — App name + badges only */
+    .navbar {
+      background-color: #1e293b;
+      border-bottom: 1px solid #334155;
+      padding: 16px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-light);
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .header-badges {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .badge-primary {
+      background-color: #334155;
+      color: #93c5fd;
+      border: 1px solid #475569;
+    }
+
+    .badge-danger {
+      background-color: #7f1d1d;
+      color: #fca5a5;
+      border: 1px solid #991b1b;
+      animation: pulseAlert 2.5s infinite ease-in-out;
+    }
+
+    @keyframes pulseAlert {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.85; }
+    }
+
+    .container {
+      max-width: 1240px;
+      margin: 28px auto 0;
+      padding: 0 24px;
+    }
+
+    /* 2. Stats Row — 4 cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background-color: var(--card-bg);
+      border-radius: var(--radius-md);
+      padding: 22px 24px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border-top: 4px solid var(--accent-blue);
+      border-left: 1px solid var(--border-color);
+      border-right: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .stat-card.alert-card {
+      border-top-color: var(--danger-red);
+    }
+
+    .stat-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-dark);
+      letter-spacing: -0.02em;
+    }
+
+    .stat-card.alert-card .stat-value {
+      color: #dc2626;
+    }
+
+    /* 3. Controls Bar */
+    .controls-card {
+      background-color: var(--card-bg);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid var(--border-color);
+    }
+
+    .search-filter-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      flex: 1;
+      min-width: 320px;
+    }
+
+    .input-field, .select-field {
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text-dark);
+      background-color: #ffffff;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .input-field:focus, .select-field:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+
+    .search-input {
+      flex: 2;
+      min-width: 220px;
+    }
+
+    .category-select {
+      flex: 1;
+      min-width: 170px;
+      cursor: pointer;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background-color: var(--accent-blue);
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--accent-blue-hover);
+    }
+
+    .btn-secondary {
+      background-color: #f1f5f9;
+      color: #475569;
+    }
+
+    .btn-secondary:hover {
+      background-color: #e2e8f0;
+      color: #1e293b;
+    }
+
+    .btn-danger {
+      background-color: var(--danger-red);
+      color: #ffffff;
+    }
+
+    .btn-danger:hover {
+      background-color: #dc2626;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+
+    /* 4. Products Table */
+    .table-container {
+      background-color: var(--card-bg);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      overflow-x: auto;
+      border: 1px solid var(--border-color);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    thead th {
+      background-color: #f8fafc;
+      color: #475569;
+      font-weight: 600;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-color);
+      white-space: nowrap;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tbody td {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-dark);
+      vertical-align: middle;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background-color: #f8fafc;
+    }
+
+    /* Low Stock Row Highlighting */
+    tbody tr.row-low-stock {
+      background-color: var(--danger-light);
+    }
+
+    tbody tr.row-low-stock:hover {
+      background-color: #fee2e2;
+    }
+
+    .stock-badge-low {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 700;
+      background-color: var(--danger-badge-bg);
+      color: var(--danger-badge-text);
+      border: 1px solid var(--danger-border);
+    }
+
+    .stock-badge-normal {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      background-color: #ecfdf5;
+      color: #065f46;
+    }
+
+    .category-chip {
+      display: inline-block;
+      padding: 3px 8px;
+      background-color: #eff6ff;
+      color: #1d4ed8;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .price-tag {
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .empty-state {
+      padding: 48px 24px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    .empty-state-icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+    }
+
+    /* 5. Add / Edit Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      padding: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal {
+      background-color: var(--card-bg);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 520px;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      transform: translateY(12px);
+      transition: transform 0.2s ease;
+    }
+
+    .modal-overlay.active .modal {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 22px;
+      color: var(--text-muted);
+      cursor: pointer;
+      line-height: 1;
+      padding: 4px;
+      transition: color 0.15s ease;
+    }
+
+    .modal-close:hover {
+      color: var(--text-dark);
+    }
+
+    .modal-body {
+      padding: 24px;
+      max-height: calc(85vh - 140px);
+      overflow-y: auto;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 6px;
+    }
+
+    label .req {
+      color: var(--danger-red);
+    }
+
+    .form-control {
+      width: 100%;
+    }
+
+    textarea.form-control {
+      resize: vertical;
+      min-height: 72px;
+    }
+
+    .field-error {
+      color: var(--danger-red);
+      font-size: 12px;
+      margin-top: 4px;
+      display: none;
+      font-weight: 500;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border-color);
+      background-color: var(--card-muted);
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    /* Delete Confirmation Modal */
+    .confirm-modal {
+      max-width: 420px;
+    }
+
+    .confirm-text {
+      color: #475569;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* 6. Toast Notifications */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 60;
+    }
+
+    .toast {
+      background-color: #1e293b;
+      color: #ffffff;
+      padding: 14px 20px;
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-lg);
+      font-size: 14px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 280px;
+      animation: toastIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      border-left: 4px solid var(--accent-blue);
+    }
+
+    .toast.toast-success {
+      border-left-color: var(--success-green);
+    }
+
+    .toast.toast-error {
+      border-left-color: var(--danger-red);
+    }
+
+    @keyframes toastIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    @media (max-width: 768px) {
+      .navbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      .form-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+      }
+      .controls-card {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .search-filter-group {
+        flex-direction: column;
+        min-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. Navbar — App name + badges only -->
+  <header class="navbar" id="navbar">
+    <div class="brand">
+      <span>📦 Inventory Manager</span>
+    </div>
+    <div class="header-badges">
+      <span class="badge badge-primary" id="headerTotalBadge">Total: 0 Items</span>
+      <span class="badge badge-danger" id="headerLowStockBadge" style="display: none;">⚠️ 0 Low Stock</span>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- 2. Stats Row — 4 cards -->
+    <section class="stats-grid" id="statsGrid">
+      <div class="stat-card" id="cardTotalProducts">
+        <div class="stat-title">Total Products</div>
+        <div class="stat-value" id="statTotalProducts">0</div>
+      </div>
+      <div class="stat-card" id="cardTotalCategories">
+        <div class="stat-title">Total Categories</div>
+        <div class="stat-value" id="statTotalCategories">0</div>
+      </div>
+      <div class="stat-card alert-card" id="cardLowStock">
+        <div class="stat-title">Low Stock Items</div>
+        <div class="stat-value" id="statLowStock">0</div>
+      </div>
+      <div class="stat-card" id="cardInventoryValue">
+        <div class="stat-title">Total Inventory Value</div>
+        <div class="stat-value" id="statTotalValue">$0.00</div>
+      </div>
+    </section>
+
+    <!-- 3. Controls Bar -->
+    <section class="controls-card" id="controlsBar">
+      <div class="search-filter-group">
+        <input
+          type="text"
+          id="searchInput"
+          class="input-field search-input"
+          placeholder="🔍 Search product name in real-time..."
+          oninput="searchProducts()"
+        />
+        <select
+          id="categoryFilter"
+          class="select-field category-select"
+          onchange="filterByCategory()"
+        >
+          <option value="all">All Categories</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" id="openAddModalBtn" onclick="openAddModal()">
+        <span>+</span> Add New Product
+      </button>
+    </section>
+
+    <!-- 4. Products Table -->
+    <div class="table-container" id="productsTableContainer">
+      <table id="productsTable">
+        <thead>
+          <tr>
+            <th>Product Name</th>
+            <th>Category</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Low Threshold</th>
+            <th>Description</th>
+            <th>Added On</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="productsTableBody">
+          <!-- Rendered dynamically via JavaScript -->
+        </tbody>
+      </table>
+      <div id="emptyState" class="empty-state" style="display: none;">
+        <div class="empty-state-icon">📋</div>
+        <h3>No products found</h3>
+        <p>Try adjusting your search query or add a new product to your inventory.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Add / Edit Modal (Reused for both Add and Edit) -->
+  <div class="modal-overlay" id="productModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalTitle">Add New Product</h3>
+        <button class="modal-close" onclick="closeModal()" aria-label="Close modal">&times;</button>
+      </div>
+      <form id="productForm" onsubmit="saveProduct(event)" novalidate>
+        <div class="modal-body">
+          <input type="hidden" id="productId" />
+
+          <div class="form-group">
+            <label for="productName">Product Name <span class="req">*</span></label>
+            <input
+              type="text"
+              id="productName"
+              class="input-field form-control"
+              placeholder="e.g. Ergonomic Office Chair"
+              required
+            />
+            <div class="field-error" id="nameError">Product name is required.</div>
+          </div>
+
+          <div class="form-group">
+            <label for="productCategory">Category <span class="req">*</span></label>
+            <input
+              type="text"
+              id="productCategory"
+              list="categoryDatalist"
+              class="input-field form-control"
+              placeholder="e.g. Furniture, Electronics"
+              required
+            />
+            <datalist id="categoryDatalist"></datalist>
+            <div class="field-error" id="categoryError">Category is required.</div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="productQuantity">Quantity <span class="req">*</span></label>
+              <input
+                type="number"
+                id="productQuantity"
+                class="input-field form-control"
+                min="0"
+                step="1"
+                placeholder="0"
+                required
+              />
+              <div class="field-error" id="quantityError">Must be an integer &ge; 0.</div>
+            </div>
+
+            <div class="form-group">
+              <label for="productPrice">Price ($) <span class="req">*</span></label>
+              <input
+                type="number"
+                id="productPrice"
+                class="input-field form-control"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                required
+              />
+              <div class="field-error" id="priceError">Must be a number &ge; 0.</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="productLowStock">Low Stock Threshold <span class="req">*</span></label>
+            <input
+              type="number"
+              id="productLowStock"
+              class="input-field form-control"
+              min="0"
+              step="1"
+              value="10"
+              required
+            />
+            <div class="field-error" id="lowStockError">Must be an integer &ge; 0.</div>
+          </div>
+
+          <div class="form-group">
+            <label for="productDescription">Description (Optional)</label>
+            <textarea
+              id="productDescription"
+              class="input-field form-control"
+              rows="3"
+              placeholder="Enter product specifications, supplier notes, etc."
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveProductBtn">Save Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" id="deleteConfirmModal">
+    <div class="modal confirm-modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Confirm Deletion</h3>
+        <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="confirm-text" id="deleteConfirmText">
+          Are you sure you want to delete this product? This action cannot be undone.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete Product</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Vanilla JavaScript -->
+  <script>
+    // API Base URL
+    // Points to http://127.0.0.1:8000/api/products/ for standalone Django execution,
+    // or relative /api/products/ when served in preview container
+    const API_URL = (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') && window.location.port !== '3000'
+      ? 'http://127.0.0.1:8000/api/products/'
+      : (window.location.port === '3000' || window.location.protocol === 'https:' ? '/api/products/' : 'http://127.0.0.1:8000/api/products/');
+
+    let allProducts = [];
+    let pendingDeleteId = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchProducts();
+    });
+
+    async function fetchProducts() {
+      try {
+        const res = await fetch(API_URL, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: Failed to retrieve products.`);
+        }
+
+        const data = await res.json();
+        allProducts = Array.isArray(data) ? data : (data.results || []);
+
+        updateCategoryOptions(allProducts);
+        renderStats(allProducts);
+        applyFiltersAndRender();
+      } catch (err) {
+        console.error('Fetch products error:', err);
+        showToast(`Could not load products: ${err.message}`, 'error');
+      }
+    }
+
+    function updateCategoryOptions(products) {
+      const categorySelect = document.getElementById('categoryFilter');
+      const datalist = document.getElementById('categoryDatalist');
+      const currentSelected = categorySelect.value;
+
+      const categories = Array.from(
+        new Set(products.map(p => p.category ? p.category.trim() : '').filter(Boolean))
+      ).sort();
+
+      categorySelect.innerHTML = '<option value="all">All Categories</option>';
+      categories.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        if (cat === currentSelected) opt.selected = true;
+        categorySelect.appendChild(opt);
+      });
+
+      datalist.innerHTML = '';
+      categories.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        datalist.appendChild(opt);
+      });
+    }
+
+    function renderStats(products) {
+      const totalProducts = products.length;
+
+      const categoriesSet = new Set(products.map(p => p.category ? p.category.trim().toLowerCase() : '').filter(Boolean));
+      const totalCategories = categoriesSet.size;
+
+      let lowStockCount = 0;
+      let totalValue = 0;
+
+      products.forEach(p => {
+        const qty = Number(p.quantity) || 0;
+        const price = Number(p.price) || 0;
+        const threshold = Number(p.low_stock_threshold !== undefined ? p.low_stock_threshold : 10);
+
+        if (qty <= threshold) {
+          lowStockCount++;
+        }
+        totalValue += (qty * price);
+      });
+
+      document.getElementById('statTotalProducts').textContent = totalProducts.toLocaleString();
+      document.getElementById('statTotalCategories').textContent = totalCategories.toLocaleString();
+      document.getElementById('statLowStock').textContent = lowStockCount.toLocaleString();
+      document.getElementById('statTotalValue').textContent = '$' + totalValue.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+
+      document.getElementById('headerTotalBadge').textContent = `Total: ${totalProducts} Items`;
+      const lowStockBadge = document.getElementById('headerLowStockBadge');
+      if (lowStockCount > 0) {
+        lowStockBadge.style.display = 'inline-flex';
+        lowStockBadge.textContent = `⚠️ ${lowStockCount} Low Stock`;
+      } else {
+        lowStockBadge.style.display = 'none';
+      }
+    }
+
+    function applyFiltersAndRender() {
+      const searchVal = document.getElementById('searchInput').value.trim().toLowerCase();
+      const categoryVal = document.getElementById('categoryFilter').value;
+
+      const filtered = allProducts.filter(p => {
+        const matchesSearch = !searchVal || (p.name && p.name.toLowerCase().includes(searchVal));
+        const matchesCategory = (categoryVal === 'all') || (p.category && p.category.toLowerCase() === categoryVal.toLowerCase());
+        return matchesSearch && matchesCategory;
+      });
+
+      renderTable(filtered);
+    }
+
+    function searchProducts() {
+      applyFiltersAndRender();
+    }
+
+    function filterByCategory() {
+      applyFiltersAndRender();
+    }
+
+    function renderTable(products) {
+      const tbody = document.getElementById('productsTableBody');
+      const emptyState = document.getElementById('emptyState');
+
+      tbody.innerHTML = '';
+
+      if (products.length === 0) {
+        emptyState.style.display = 'block';
+        return;
+      }
+      emptyState.style.display = 'none';
+
+      products.forEach(product => {
+        const tr = document.createElement('tr');
+        const qty = Number(product.quantity) || 0;
+        const threshold = Number(product.low_stock_threshold !== undefined ? product.low_stock_threshold : 10);
+        const isLow = qty <= threshold;
+
+        if (isLow) {
+          tr.classList.add('row-low-stock');
+        }
+
+        let formattedDate = '—';
+        if (product.created_at) {
+          const d = new Date(product.created_at);
+          formattedDate = isNaN(d.getTime()) ? product.created_at : d.toLocaleDateString(undefined, {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          });
+        }
+
+        const priceNum = Number(product.price) || 0;
+
+        tr.innerHTML = `
+          <td><strong>${escapeHtml(product.name)}</strong></td>
+          <td><span class="category-chip">${escapeHtml(product.category)}</span></td>
+          <td>
+            ${isLow
+              ? `<span class="stock-badge-low">⚠️ ${qty}</span>`
+              : `<span class="stock-badge-normal">${qty}</span>`
+            }
+          </td>
+          <td><span class="price-tag">$${priceNum.toFixed(2)}</span></td>
+          <td>${threshold}</td>
+          <td style="max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(product.description || '')}">
+            ${escapeHtml(product.description || '—')}
+          </td>
+          <td style="color: var(--text-muted); font-size: 13px;">${formattedDate}</td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn btn-secondary btn-sm" onclick="openEditModal(${product.id})">
+                ✏️ Edit
+              </button>
+              <button class="btn btn-danger btn-sm" onclick="deleteProduct(${product.id})">
+                🗑️ Delete
+              </button>
+            </div>
+          </td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openAddModal() {
+      document.getElementById('modalTitle').textContent = 'Add New Product';
+      document.getElementById('productId').value = '';
+      document.getElementById('productName').value = '';
+      document.getElementById('productCategory').value = '';
+      document.getElementById('productQuantity').value = '';
+      document.getElementById('productPrice').value = '';
+      document.getElementById('productLowStock').value = '10';
+      document.getElementById('productDescription').value = '';
+      clearErrors();
+
+      const modal = document.getElementById('productModal');
+      modal.classList.add('active');
+      setTimeout(() => document.getElementById('productName').focus(), 50);
+    }
+
+    async function openEditModal(id) {
+      clearErrors();
+      const product = allProducts.find(p => p.id === id);
+
+      if (product) {
+        populateAndShowEdit(product);
+      } else {
+        try {
+          const res = await fetch(`${API_URL}${id}/`);
+          if (!res.ok) throw new Error('Product not found');
+          const fetched = await res.json();
+          populateAndShowEdit(fetched);
+        } catch (err) {
+          showToast(`Error opening product: ${err.message}`, 'error');
+        }
+      }
+    }
+
+    function populateAndShowEdit(product) {
+      document.getElementById('modalTitle').textContent = 'Edit Product';
+      document.getElementById('productId').value = product.id;
+      document.getElementById('productName').value = product.name;
+      document.getElementById('productCategory').value = product.category;
+      document.getElementById('productQuantity').value = product.quantity;
+      document.getElementById('productPrice').value = product.price;
+      document.getElementById('productLowStock').value = product.low_stock_threshold !== undefined ? product.low_stock_threshold : 10;
+      document.getElementById('productDescription').value = product.description || '';
+
+      const modal = document.getElementById('productModal');
+      modal.classList.add('active');
+      setTimeout(() => document.getElementById('productName').focus(), 50);
+    }
+
+    function closeModal() {
+      document.getElementById('productModal').classList.remove('active');
+    }
+
+    function clearErrors() {
+      document.querySelectorAll('.field-error').forEach(el => el.style.display = 'none');
+    }
+
+    function validateForm(data) {
+      let isValid = true;
+      clearErrors();
+
+      if (!data.name || !data.name.trim()) {
+        document.getElementById('nameError').textContent = 'Name is required.';
+        document.getElementById('nameError').style.display = 'block';
+        isValid = false;
+      }
+
+      if (!data.category || !data.category.trim()) {
+        document.getElementById('categoryError').textContent = 'Category is required.';
+        document.getElementById('categoryError').style.display = 'block';
+        isValid = false;
+      }
+
+      if (data.quantity === '' || isNaN(data.quantity) || !Number.isInteger(Number(data.quantity)) || Number(data.quantity) < 0) {
+        document.getElementById('quantityError').textContent = 'Quantity must be an integer >= 0.';
+        document.getElementById('quantityError').style.display = 'block';
+        isValid = false;
+      }
+
+      if (data.price === '' || isNaN(data.price) || Number(data.price) < 0) {
+        document.getElementById('priceError').textContent = 'Price must be a number >= 0.00.';
+        document.getElementById('priceError').style.display = 'block';
+        isValid = false;
+      }
+
+      if (data.low_stock_threshold === '' || isNaN(data.low_stock_threshold) || !Number.isInteger(Number(data.low_stock_threshold)) || Number(data.low_stock_threshold) < 0) {
+        document.getElementById('lowStockError').textContent = 'Low Stock Threshold must be an integer >= 0.';
+        document.getElementById('lowStockError').style.display = 'block';
+        isValid = false;
+      }
+
+      return isValid;
+    }
+
+    async function saveProduct(event) {
+      event.preventDefault();
+
+      const id = document.getElementById('productId').value;
+      const isEditing = Boolean(id);
+
+      const rawData = {
+        name: document.getElementById('productName').value.trim(),
+        category: document.getElementById('productCategory').value.trim(),
+        quantity: document.getElementById('productQuantity').value.trim(),
+        price: document.getElementById('productPrice').value.trim(),
+        low_stock_threshold: document.getElementById('productLowStock').value.trim(),
+        description: document.getElementById('productDescription').value.trim(),
+      };
+
+      if (!validateForm(rawData)) {
+        return;
+      }
+
+      const payload = {
+        name: rawData.name,
+        category: rawData.category,
+        quantity: parseInt(rawData.quantity, 10),
+        price: parseFloat(rawData.price).toFixed(2),
+        low_stock_threshold: parseInt(rawData.low_stock_threshold, 10),
+        description: rawData.description,
+      };
+
+      const saveBtn = document.getElementById('saveProductBtn');
+      const originalBtnText = saveBtn.innerHTML;
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = 'Saving...';
+
+      try {
+        const endpoint = isEditing ? `${API_URL}${id}/` : API_URL;
+        const method = isEditing ? 'PUT' : 'POST';
+
+        const res = await fetch(endpoint, {
+          method: method,
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+
+        const resData = await res.json();
+
+        if (!res.ok) {
+          if (res.status === 400 && typeof resData === 'object') {
+            let errorFound = false;
+            for (const [field, messages] of Object.entries(resData)) {
+              const msg = Array.isArray(messages) ? messages.join(' ') : String(messages);
+              if (field === 'name') {
+                document.getElementById('nameError').textContent = msg;
+                document.getElementById('nameError').style.display = 'block';
+                errorFound = true;
+              } else if (field === 'quantity') {
+                document.getElementById('quantityError').textContent = msg;
+                document.getElementById('quantityError').style.display = 'block';
+                errorFound = true;
+              } else if (field === 'price') {
+                document.getElementById('priceError').textContent = msg;
+                document.getElementById('priceError').style.display = 'block';
+                errorFound = true;
+              }
+            }
+            if (!errorFound) {
+              showToast('Validation error: ' + JSON.stringify(resData), 'error');
+            }
+            return;
+          }
+          throw new Error(resData.message || resData.detail || `Server error: HTTP ${res.status}`);
+        }
+
+        closeModal();
+        showToast(isEditing ? 'Product updated!' : 'Product added successfully!', 'success');
+        await fetchProducts();
+      } catch (err) {
+        console.error('Save product error:', err);
+        showToast(`Save failed: ${err.message}`, 'error');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = originalBtnText;
+      }
+    }
+
+    function deleteProduct(id) {
+      const product = allProducts.find(p => p.id === id);
+      const name = product ? product.name : 'this item';
+
+      pendingDeleteId = id;
+      document.getElementById('deleteConfirmText').textContent =
+        `Are you sure you want to delete "${name}"? This action cannot be undone.`;
+
+      const confirmModal = document.getElementById('deleteConfirmModal');
+      confirmModal.classList.add('active');
+
+      const confirmBtn = document.getElementById('confirmDeleteBtn');
+      confirmBtn.onclick = async () => {
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Deleting...';
+        try {
+          const res = await fetch(`${API_URL}${pendingDeleteId}/`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (!res.ok) {
+            throw new Error(`Failed with HTTP status ${res.status}`);
+          }
+
+          closeDeleteModal();
+          showToast('Product deleted!', 'success');
+          await fetchProducts();
+        } catch (err) {
+          console.error('Delete error:', err);
+          showToast(`Delete failed: ${err.message}`, 'error');
+        } finally {
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = 'Delete Product';
+        }
+      };
+    }
+
+    function closeDeleteModal() {
+      document.getElementById('deleteConfirmModal').classList.remove('active');
+      pendingDeleteId = null;
+    }
+
+    function showToast(msg, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+
+      const icon = type === 'success' ? '✅' : '❌';
+      toast.innerHTML = `<span>${icon}</span> <span>${escapeHtml(msg)}</span>`;
+
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>

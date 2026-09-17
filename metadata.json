@@ -1,0 +1,6 @@
+{
+  "name": "📦 Inventory Management System",
+  "description": "A full-stack Inventory Management System featuring camera barcode & SKU scanning, user authentication, real-time stock adjustments, activity audit logs, CSV export, printable reports, and low stock alerts.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
