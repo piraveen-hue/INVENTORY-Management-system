@@ -236,6 +236,7 @@ The system manages three primary entities: **User**, **Product**, and **Activity
 | :--- | :--- | :--- | :--- |
 | `GET` | `/api/products/` | Retrieve products with optional `?search=`, `?category=`, and `?stock_status=` query parameters | No |
 | `GET` | `/api/products/:id/` | Retrieve a single product by numeric ID | No |
+| `GET` | `/api/products/validate-sku` | Real-time SKU validation checking alphanumeric format and inventory uniqueness (`?sku=...&exclude_id=...`) | No |
 | `GET` | `/api/products/scan/:code` | Barcode lookup matching SKU, name, or numeric ID (exact & clean alphanumeric match) | No |
 | `POST` | `/api/products/` | Create a new product entry | Staff / Manager |
 | `PUT` | `/api/products/:id/` | Update an existing product's metadata and stock | Staff / Manager |

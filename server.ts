@@ -309,6 +309,59 @@ async function startServer() {
     res.status(200).json(sorted);
   });
 
+  // REST API: GET /api/products/validate-sku?sku=...&exclude_id=...
+  app.get('/api/products/validate-sku', (req, res) => {
+    const rawSku = (req.query.sku as string || '').trim().toUpperCase();
+    const excludeId = req.query.exclude_id ? parseInt(req.query.exclude_id as string, 10) : null;
+
+    if (!rawSku) {
+      return res.status(200).json({
+        valid: true,
+        empty: true,
+        message: "SKU will be auto-generated based on category."
+      });
+    }
+
+    // Standard Alphanumeric SKU validation:
+    // Requires standard alphanumeric characters, uppercase letters, digits, and optional hyphens/underscores.
+    // Must contain alphanumeric characters, 3 to 30 characters in length.
+    const skuFormatRegex = /^[A-Z0-9][A-Z0-9_-]{1,28}[A-Z0-9]$|^[A-Z0-9]{2,30}$/;
+    if (!skuFormatRegex.test(rawSku)) {
+      return res.status(200).json({
+        valid: false,
+        reason: "format",
+        message: "SKU must be standard alphanumeric (2-30 chars, letters/numbers, hyphens, underscores). Example: SKU-ELEC-204"
+      });
+    }
+
+    // Check uniqueness across existing products (ignoring the item currently being edited)
+    const duplicate = products.find(p => {
+      if (excludeId !== null && !isNaN(excludeId) && p.id === excludeId) {
+        return false;
+      }
+      return p.sku.toUpperCase() === rawSku;
+    });
+
+    if (duplicate) {
+      return res.status(200).json({
+        valid: false,
+        reason: "duplicate",
+        message: `SKU '${rawSku}' is already assigned to '${duplicate.name}'. Must be unique.`,
+        conflictProduct: {
+          id: duplicate.id,
+          name: duplicate.name,
+          category: duplicate.category
+        }
+      });
+    }
+
+    res.status(200).json({
+      valid: true,
+      sku: rawSku,
+      message: `SKU '${rawSku}' is available and valid.`
+    });
+  });
+
   // REST API: GET /api/products/
   app.get('/api/products/', (req, res) => {
     let result = [...products];
@@ -472,14 +525,31 @@ async function startServer() {
       errors.low_stock_threshold = ["Low stock threshold must be >= 0."];
     }
 
+    // SKU Format & Uniqueness Validation
+    let assignedSku = '';
+    if (sku && typeof sku === 'string' && sku.trim()) {
+      const trimmedSku = sku.trim().toUpperCase();
+      const skuFormatRegex = /^[A-Z0-9][A-Z0-9_-]{1,28}[A-Z0-9]$|^[A-Z0-9]{2,30}$/;
+      if (!skuFormatRegex.test(trimmedSku)) {
+        errors.sku = ["SKU must be standard alphanumeric (2-30 chars, letters/numbers, hyphens, underscores). Example: SKU-ELEC-204"];
+      } else {
+        const existingSku = products.find(p => p.sku.toUpperCase() === trimmedSku);
+        if (existingSku) {
+          errors.sku = [`SKU '${trimmedSku}' is already assigned to product '${existingSku.name}'.`];
+        } else {
+          assignedSku = trimmedSku;
+        }
+      }
+    }
+
     if (Object.keys(errors).length > 0) {
       return res.status(400).json(errors);
     }
 
     const assignedId = nextId++;
-    const assignedSku = (sku && typeof sku === 'string' && sku.trim())
-      ? sku.trim().toUpperCase()
-      : generateSku(category.trim(), assignedId);
+    if (!assignedSku) {
+      assignedSku = generateSku(category.trim(), assignedId);
+    }
 
     const newProduct: Product = {
       id: assignedId,
@@ -552,14 +622,30 @@ async function startServer() {
       errors.low_stock_threshold = ["Low stock threshold must be >= 0."];
     }
 
+    // SKU Format & Uniqueness Validation on update
+    let updatedSku = products[index].sku;
+    if (sku && typeof sku === 'string' && sku.trim()) {
+      const trimmedSku = sku.trim().toUpperCase();
+      const skuFormatRegex = /^[A-Z0-9][A-Z0-9_-]{1,28}[A-Z0-9]$|^[A-Z0-9]{2,30}$/;
+      if (!skuFormatRegex.test(trimmedSku)) {
+        errors.sku = ["SKU must be standard alphanumeric (2-30 chars, letters/numbers, hyphens, underscores). Example: SKU-ELEC-204"];
+      } else {
+        const existingSku = products.find(p => p.id !== id && p.sku.toUpperCase() === trimmedSku);
+        if (existingSku) {
+          errors.sku = [`SKU '${trimmedSku}' is already assigned to product '${existingSku.name}'.`];
+        } else {
+          updatedSku = trimmedSku;
+        }
+      }
+    } else if (!updatedSku) {
+      updatedSku = generateSku(category.trim(), id);
+    }
+
     if (Object.keys(errors).length > 0) {
       return res.status(400).json(errors);
     }
 
     const prevProduct = { ...products[index] };
-    const updatedSku = (sku && typeof sku === 'string' && sku.trim())
-      ? sku.trim().toUpperCase()
-      : products[index].sku || generateSku(category.trim(), id);
 
     products[index] = {
       ...products[index],
